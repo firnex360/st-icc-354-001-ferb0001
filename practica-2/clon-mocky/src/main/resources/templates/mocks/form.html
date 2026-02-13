@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/layout :: head(${esNuevo} ? #{mock.create} : #{mock.edit})}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container flex-grow-1">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/proyectos}" th:text="#{nav.projects}">Proyectos</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{'/proyectos/' + ${proyecto.id} + '/mocks'}" th:text="${proyecto.nombre}">Proyecto</a>
+                </li>
+                <li class="breadcrumb-item active" th:text="${esNuevo} ? #{mock.create} : #{mock.edit}">Mock</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h4 class="mb-0">
+                            <i class="bi" th:classappend="${esNuevo} ? 'bi-plus-circle' : 'bi-pencil-square'"></i>
+                            <span th:text="${esNuevo} ? #{mock.create} : #{mock.edit}">Mock</span>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${esNuevo}
+                                ? @{'/proyectos/' + ${proyecto.id} + '/mocks/crear'}
+                                : @{'/proyectos/' + ${proyecto.id} + '/mocks/actualizar/' + ${mock.id}}"
+                              method="post" id="mockForm">
+
+                            <div class="row">
+                                <!-- Nombre -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombre" class="form-label" th:text="#{mock.name}">Nombre</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre"
+                                           th:value="${mock.nombre}" required maxlength="100"/>
+                                </div>
+
+                                <!-- Ruta -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="ruta" class="form-label" th:text="#{mock.route}">Ruta</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">/mock/{uuid}</span>
+                                        <input type="text" class="form-control" id="ruta" name="ruta"
+                                               th:value="${mock.ruta}" placeholder="/api/datos"
+                                               maxlength="200"/>
+                                    </div>
+                                    <div class="form-text">Ruta descriptiva (la URL real usa el UUID)</div>
+                                </div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label" th:text="#{mock.description}">Descripción</label>
+                                <input type="text" class="form-control" id="descripcion" name="descripcion"
+                                       th:value="${mock.descripcion}" maxlength="300"/>
+                            </div>
+
+                            <div class="row">
+                                <!-- Método HTTP -->
+                                <div class="col-md-3 mb-3">
+                                    <label for="metodo" class="form-label" th:text="#{mock.method}">Método HTTP</label>
+                                    <select class="form-select" id="metodo" name="metodo" required>
+                                        <option th:each="m : ${metodos}"
+                                                th:value="${m.name()}"
+                                                th:text="${m.name()}"
+                                                th:selected="${mock.metodo != null && mock.metodo == m}">GET</option>
+                                    </select>
+                                </div>
+
+                                <!-- Código de respuesta -->
+                                <div class="col-md-3 mb-3">
+                                    <label for="codigoRespuesta" class="form-label" th:text="#{mock.response.code}">Código</label>
+                                    <input type="number" class="form-control" id="codigoRespuesta" name="codigoRespuesta"
+                                           th:value="${mock.codigoRespuesta ?: 200}" min="100" max="599" required/>
+                                </div>
+
+                                <!-- Content-Type -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="contentType" class="form-label" th:text="#{mock.content.type}">Content-Type</label>
+                                    <select class="form-select" id="contentType" name="contentType" required>
+                                        <option value="application/json"
+                                                th:selected="${mock.contentType == 'application/json' || mock.contentType == null}">application/json</option>
+                                        <option value="application/xml"
+                                                th:selected="${mock.contentType == 'application/xml'}">application/xml</option>
+                                        <option value="text/plain"
+                                                th:selected="${mock.contentType == 'text/plain'}">text/plain</option>
+                                        <option value="text/html"
+                                                th:selected="${mock.contentType == 'text/html'}">text/html</option>
+                                        <option value="text/csv"
+                                                th:selected="${mock.contentType == 'text/csv'}">text/csv</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Cuerpo de la respuesta -->
+                            <div class="mb-3">
+                                <label for="body" class="form-label" th:text="#{mock.body}">Cuerpo de la Respuesta</label>
+                                <textarea class="form-control font-monospace" id="body" name="body"
+                                          rows="8" th:text="${mock.body}"
+                                          placeholder='{"message": "Hello World", "status": "ok"}'></textarea>
+                            </div>
+
+                            <!-- Headers personalizados -->
+                            <div class="mb-3">
+                                <label class="form-label" th:text="#{mock.headers}">Headers</label>
+                                <div id="headersContainer">
+                                    <!-- Headers existentes (en edición) -->
+                                    <div th:if="${mock.headers != null && !mock.headers.isEmpty()}">
+                                        <div th:each="entry : ${mock.headers}" class="row g-2 mb-2 header-row">
+                                            <div class="col-5">
+                                                <input type="text" class="form-control" name="headerKeys"
+                                                       th:value="${entry.key}" th:placeholder="#{mock.header.key}"/>
+                                            </div>
+                                            <div class="col-5">
+                                                <input type="text" class="form-control" name="headerValues"
+                                                       th:value="${entry.value}" th:placeholder="#{mock.header.value}"/>
+                                            </div>
+                                            <div class="col-2">
+                                                <button type="button" class="btn btn-outline-danger w-100"
+                                                        onclick="this.closest('.header-row').remove()">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="addHeaderBtn">
+                                    <i class="bi bi-plus-lg"></i> <span th:text="#{mock.header.add}">Agregar Header</span>
+                                </button>
+                            </div>
+
+                            <div class="row">
+                                <!-- Demora -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="delay" class="form-label" th:text="#{mock.delay}">Demora (segundos)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="delay" name="delay"
+                                               th:value="${mock.delay ?: 0}" min="0" max="30"/>
+                                        <span class="input-group-text">seg</span>
+                                    </div>
+                                </div>
+
+                                <!-- Tipo de expiración -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="tipoExpiracion" class="form-label" th:text="#{mock.expiration}">Expiración</label>
+                                    <select class="form-select" id="tipoExpiracion" name="tipoExpiracion" required>
+                                        <option th:each="exp : ${expiraciones}"
+                                                th:value="${exp.name()}"
+                                                th:text="${exp.name().replace('_', ' ')}"
+                                                th:selected="${mock.tipoExpiracion != null && mock.tipoExpiracion == exp}">1 Hora</option>
+                                    </select>
+                                </div>
+
+                                <!-- Requiere JWT -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" th:text="#{mock.jwt.required}">Requiere JWT</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="requiereJwt" name="requiereJwt"
+                                               value="true" th:checked="${mock.requiereJwt}"/>
+                                        <label class="form-check-label" for="requiereJwt">
+                                            <i class="bi bi-shield-lock"></i> Token JWT
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Activo (solo en edición) -->
+                            <div class="mb-3" th:unless="${esNuevo}">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="activo" name="activo"
+                                           value="true" th:checked="${mock.activo}"/>
+                                    <label class="form-check-label" for="activo" th:text="#{mock.active}">Activo</label>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <hr/>
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{'/proyectos/' + ${proyecto.id} + '/mocks'}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> <span th:text="#{mock.cancel}">Cancelar</span>
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg"></i> <span th:text="#{mock.save}">Guardar</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <!-- Script para agregar headers dinámicamente -->
+    <script th:inline="javascript">
+        document.getElementById('addHeaderBtn').addEventListener('click', function() {
+            const container = document.getElementById('headersContainer');
+            const row = document.createElement('div');
+            row.className = 'row g-2 mb-2 header-row';
+            row.innerHTML = `
+                <div class="col-5">
+                    <input type="text" class="form-control" name="headerKeys" placeholder="Header Key"/>
+                </div>
+                <div class="col-5">
+                    <input type="text" class="form-control" name="headerValues" placeholder="Header Value"/>
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-outline-danger w-100"
+                            onclick="this.closest('.header-row').remove()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    </script>
+</body>
+</html>

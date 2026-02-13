@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head th:replace="~{fragments/layout :: head(#{user.title})}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container flex-grow-1">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-people"></i> <span th:text="#{user.title}">Gestión de Usuarios</span>
+            </h2>
+            <a th:href="@{/admin/usuarios/nuevo}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> <span th:text="#{user.create}">Crear Usuario</span>
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th th:text="#{user.username}">Usuario</th>
+                            <th th:text="#{user.name}">Nombre</th>
+                            <th th:text="#{user.roles}">Roles</th>
+                            <th th:text="#{user.active}">Activo</th>
+                            <th th:text="#{user.actions}">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="usuario : ${usuarios}">
+                            <td th:text="${usuario.id}">1</td>
+                            <td>
+                                <i class="bi bi-person-circle"></i>
+                                <span th:text="${usuario.username}">admin</span>
+                            </td>
+                            <td th:text="${usuario.nombre}">Admin</td>
+                            <td>
+                                <span th:each="rol : ${usuario.roles}"
+                                      class="badge me-1"
+                                      th:classappend="${rol.name() == 'ROLE_ADMIN'} ? 'bg-danger' : 'bg-secondary'"
+                                      th:text="${rol.name().replace('ROLE_', '')}">ADMIN</span>
+                            </td>
+                            <td>
+                                <span th:if="${usuario.activo}" class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Sí
+                                </span>
+                                <span th:unless="${usuario.activo}" class="badge bg-danger">
+                                    <i class="bi bi-x-circle"></i> No
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{'/admin/usuarios/editar/' + ${usuario.id}}"
+                                       class="btn btn-outline-warning" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <!-- No permitir eliminar al usuario "admin" -->
+                                    <form th:unless="${usuario.username == 'admin'}"
+                                          th:action="@{'/admin/usuarios/eliminar/' + ${usuario.id}}"
+                                          method="post" class="d-inline"
+                                          th:attr="onsubmit='return confirm(\'' + #{user.confirm.delete} + '\')'">
+                                        <button type="submit" class="btn btn-outline-danger" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(usuarios)}">
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No hay usuarios registrados
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/layout :: head(#{mock.title})}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container flex-grow-1">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/proyectos}" th:text="#{nav.projects}">Proyectos</a></li>
+                <li class="breadcrumb-item active" th:text="${proyecto.nombre}">Proyecto</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-plug"></i>
+                <span th:text="#{mock.title}">Gestión de Mocks</span>
+                <small class="text-muted fs-6" th:text="'- ' + ${proyecto.nombre}">- Proyecto</small>
+            </h2>
+            <a th:href="@{'/proyectos/' + ${proyecto.id} + '/mocks/nuevo'}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> <span th:text="#{mock.create}">Crear Mock</span>
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th th:text="#{mock.method}">Método</th>
+                            <th th:text="#{mock.name}">Nombre</th>
+                            <th th:text="#{mock.route}">Ruta</th>
+                            <th th:text="#{mock.response.code}">Código</th>
+                            <th th:text="#{mock.delay}">Demora</th>
+                            <th th:text="#{mock.expiration}">Expiración</th>
+                            <th>JWT</th>
+                            <th>Estado</th>
+                            <th th:text="#{mock.actions}">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="mock : ${mocks}" th:classappend="${mock.estaExpirado() || !mock.activo} ? 'table-secondary' : ''">
+                            <!-- Método HTTP con badge de color -->
+                            <td>
+                                <span class="badge method-badge"
+                                      th:classappend="${'method-' + mock.metodo.name()}"
+                                      th:text="${mock.metodo.name()}">GET</span>
+                            </td>
+                            <td th:text="${mock.nombre}">Mock</td>
+                            <td>
+                                <code th:text="${mock.ruta}">/api/test</code>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${mock.codigoRespuesta >= 200 && mock.codigoRespuesta < 300 ? 'bg-success' : (mock.codigoRespuesta >= 400 ? 'bg-danger' : 'bg-warning')}"
+                                      th:text="${mock.codigoRespuesta}">200</span>
+                            </td>
+                            <td>
+                                <span th:if="${mock.delay > 0}" th:text="${mock.delay + 's'}">0s</span>
+                                <span th:if="${mock.delay == 0}" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <small th:text="${#temporals.format(mock.fechaExpiracion, 'dd/MM/yyyy HH:mm')}">01/01/2025</small>
+                            </td>
+                            <td>
+                                <i th:if="${mock.requiereJwt}" class="bi bi-shield-lock text-warning" title="JWT requerido"></i>
+                                <span th:unless="${mock.requiereJwt}" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <span th:if="${mock.estaExpirado()}" class="badge bg-secondary"
+                                      th:text="#{mock.expired}">Expirado</span>
+                                <span th:if="${!mock.estaExpirado() && mock.activo}" class="badge bg-success"
+                                      th:text="#{mock.active}">Activo</span>
+                                <span th:if="${!mock.activo && !mock.estaExpirado()}" class="badge bg-warning">
+                                    Inactivo
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{'/proyectos/' + ${proyecto.id} + '/mocks/detalle/' + ${mock.id}}"
+                                       class="btn btn-outline-info" title="Detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{'/proyectos/' + ${proyecto.id} + '/mocks/editar/' + ${mock.id}}"
+                                       class="btn btn-outline-warning" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{'/proyectos/' + ${proyecto.id} + '/mocks/eliminar/' + ${mock.id}}"
+                                          method="post" class="d-inline"
+                                          th:attr="onsubmit='return confirm(\'' + #{mock.confirm.delete} + '\')'">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(mocks)}">
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                No hay mocks en este proyecto
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón volver -->
+        <div class="mt-3">
+            <a th:href="@{/proyectos}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> <span th:text="#{nav.projects}">Proyectos</span>
+            </a>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
