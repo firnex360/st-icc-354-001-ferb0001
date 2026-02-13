@@ -43,18 +43,23 @@ public class DashboardController {
 
         if (usuario.esAdmin()) {
             // Admin ve todo
-            model.addAttribute("proyectos", proyectoService.listarTodos());
-            model.addAttribute("mocks", mockEndpointService.listarTodos());
-            model.addAttribute("usuarios", usuarioService.listarTodos());
-            model.addAttribute("totalProyectos", proyectoService.listarTodos().size());
-            model.addAttribute("totalMocks", mockEndpointService.listarTodos().size());
-            model.addAttribute("totalUsuarios", usuarioService.listarTodos().size());
+            var proyectos = proyectoService.listarTodos();
+            var mocks = mockEndpointService.listarTodos();
+            var usuarios = usuarioService.listarTodos();
+            model.addAttribute("proyectos", proyectos);
+            model.addAttribute("mocks", mocks);
+            model.addAttribute("usuarios", usuarios);
+            model.addAttribute("totalProyectos", proyectos.size());
+            model.addAttribute("totalMocks", mocks.size());
+            model.addAttribute("totalUsuarios", usuarios.size());
         } else {
             // Usuario normal solo ve lo suyo
-            model.addAttribute("proyectos", proyectoService.listarPorUsuario(usuario.getId()));
-            model.addAttribute("mocks", mockEndpointService.listarPorUsuario(usuario.getId()));
-            model.addAttribute("totalProyectos", proyectoService.listarPorUsuario(usuario.getId()).size());
-            model.addAttribute("totalMocks", mockEndpointService.listarPorUsuario(usuario.getId()).size());
+            var proyectos = proyectoService.listarPorUsuario(usuario.getId());
+            var mocks = mockEndpointService.listarPorUsuario(usuario.getId());
+            model.addAttribute("proyectos", proyectos);
+            model.addAttribute("mocks", mocks);
+            model.addAttribute("totalProyectos", proyectos.size());
+            model.addAttribute("totalMocks", mocks.size());
         }
 
         return "dashboard";

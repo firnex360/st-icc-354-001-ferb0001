@@ -1,7 +1,6 @@
 package com.practica.clon_mocky.config;
 
 import com.practica.clon_mocky.services.JwtService;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

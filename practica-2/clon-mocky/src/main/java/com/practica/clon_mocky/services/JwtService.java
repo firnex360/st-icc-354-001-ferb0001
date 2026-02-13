@@ -35,11 +35,11 @@ public class JwtService {
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 
     /** Clave secreta para firmar los JWT (Base64 desde application.properties) */
-    @Value("${jwt.secret}")
+    @Value("${app.jwt.secret}")
     private String secret;
 
     /** Tiempo de expiración por defecto en minutos (para tokens de sesión) */
-    @Value("${jwt.expiration}")
+    @Value("${app.jwt.expiration}")
     private int defaultExpiration;
 
     // ========================

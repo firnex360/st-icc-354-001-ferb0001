@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head th:replace="~{fragments/layout :: head(${esNuevo} ? #{mock.create} : #{mock.edit})}">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mock</title>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -116,15 +119,18 @@
                                         <div th:each="entry : ${mock.headers}" class="row g-2 mb-2 header-row">
                                             <div class="col-5">
                                                 <input type="text" class="form-control" name="headerKeys"
-                                                       th:value="${entry.key}" th:placeholder="#{mock.header.key}"/>
+                                                       th:value="${entry.key}" th:placeholder="#{mock.header.key}"
+                                                       placeholder="Header Key" title="Header Key"/>
                                             </div>
                                             <div class="col-5">
                                                 <input type="text" class="form-control" name="headerValues"
-                                                       th:value="${entry.value}" th:placeholder="#{mock.header.value}"/>
+                                                       th:value="${entry.value}" th:placeholder="#{mock.header.value}"
+                                                       placeholder="Header Value" title="Header Value"/>
                                             </div>
                                             <div class="col-2">
                                                 <button type="button" class="btn btn-outline-danger w-100"
-                                                        onclick="this.closest('.header-row').remove()">
+                                                        onclick="this.closest('.header-row').remove()"
+                                                        aria-label="Eliminar header">
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </div>

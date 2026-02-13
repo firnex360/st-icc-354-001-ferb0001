@@ -39,7 +39,7 @@ public class ProyectoService {
      */
     @Transactional(readOnly = true)
     public List<Proyecto> listarTodos() {
-        return proyectoRepository.findAll();
+        return proyectoRepository.findAllWithMocksAndUsuario();
     }
 
     /**
@@ -61,7 +61,7 @@ public class ProyectoService {
      */
     @Transactional(readOnly = true)
     public Optional<Proyecto> buscarPorId(Long id) {
-        return proyectoRepository.findById(id);
+        return proyectoRepository.findByIdWithMocksAndUsuario(id);
     }
 
     /**
