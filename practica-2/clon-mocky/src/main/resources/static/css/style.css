@@ -25,6 +25,7 @@ main {
 }
 .login-card {
     width: 100%;
+    min-width: 380px;
     max-width: 420px;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
@@ -127,4 +128,9 @@ main {
     .stat-card .stat-number { font-size: 1.5rem; }
     .stat-card .stat-icon { font-size: 1.8rem; }
     .table-responsive { font-size: 0.85rem; }
+}
+
+/* Utilities */
+.word-break-all {
+    word-break: break-all;
 }

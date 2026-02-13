@@ -105,8 +105,7 @@ public class SecurityConfig {
     public SecurityFilterChain dashboardFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf
-                        // Deshabilitar CSRF para la consola H2 (solo desarrollo)
-                        .ignoringRequestMatchers("/h2-console/**")
+                        .ignoringRequestMatchers("/error")
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Recursos públicos
@@ -116,7 +115,7 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**",
                                 "/webjars/**",
-                                "/h2-console/**"
+                                "/error"
                         ).permitAll()
                         // Rutas de administración (solo ADMIN)
                         .requestMatchers("/admin/**")
@@ -140,7 +139,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                // Permitir frames para la consola H2
+                // Headers de seguridad
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )

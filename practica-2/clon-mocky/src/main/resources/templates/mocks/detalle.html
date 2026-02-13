@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head th:replace="~{fragments/layout :: head(${mock.nombre})}">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mock Detalle</title>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -41,7 +44,7 @@
                                 </code>
                             </div>
                             <button class="btn btn-sm btn-outline-light" onclick="copyToClipboard('mockUrl')"
-                                    th:title="#{mock.copy.url}">
+                                    th:title="#{mock.copy.url}" aria-label="Copiar URL">
                                 <i class="bi bi-clipboard"></i>
                             </button>
                         </div>
@@ -56,7 +59,8 @@
                                         : 'curl -X ' + mock.metodo.name() + ' http://localhost:8080/mock/' + mock.uuid}">
                                     curl command
                                 </code>
-                                <button class="btn btn-sm btn-outline-light float-end" onclick="copyToClipboard('curlCommand')">
+                                <button class="btn btn-sm btn-outline-light float-end" onclick="copyToClipboard('curlCommand')"
+                                        aria-label="Copiar cURL">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
                             </div>
@@ -74,10 +78,10 @@
                     </div>
                     <div class="card-body">
                         <div class="jwt-token-box d-flex align-items-start justify-content-between">
-                            <code id="jwtToken" class="text-break" style="word-break: break-all;"
+                            <code id="jwtToken" class="text-break word-break-all"
                                   th:text="${mock.tokenJwt}">token</code>
                             <button class="btn btn-sm btn-outline-warning ms-2" onclick="copyToClipboard('jwtToken')"
-                                    th:title="#{mock.copy.token}">
+                                    th:title="#{mock.copy.token}" aria-label="Copiar token JWT">
                                 <i class="bi bi-clipboard"></i>
                             </button>
                         </div>
