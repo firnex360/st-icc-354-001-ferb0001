@@ -54,7 +54,7 @@ public class MockEndpointController {
      * Lista los mocks de un proyecto.
      */
     @GetMapping
-    public String listar(@PathVariable Long proyectoId, Authentication auth,
+    public String listar(@PathVariable("proyectoId") Long proyectoId, Authentication auth,
                          Model model, RedirectAttributes redirect) {
         Usuario usuario = getUsuarioAutenticado(auth);
         if (!tieneAcceso(usuario, proyectoId)) {
@@ -75,7 +75,7 @@ public class MockEndpointController {
      * Muestra el formulario para crear un nuevo mock.
      */
     @GetMapping("/nuevo")
-    public String mostrarFormularioCrear(@PathVariable Long proyectoId, Authentication auth,
+    public String mostrarFormularioCrear(@PathVariable("proyectoId") Long proyectoId, Authentication auth,
                                          Model model, RedirectAttributes redirect) {
         Usuario usuario = getUsuarioAutenticado(auth);
         if (!tieneAcceso(usuario, proyectoId)) {
@@ -98,8 +98,8 @@ public class MockEndpointController {
      * Muestra el formulario para editar un mock existente.
      */
     @GetMapping("/editar/{mockId}")
-    public String mostrarFormularioEditar(@PathVariable Long proyectoId,
-                                          @PathVariable Long mockId,
+    public String mostrarFormularioEditar(@PathVariable("proyectoId") Long proyectoId,
+                                          @PathVariable("mockId") Long mockId,
                                           Authentication auth,
                                           Model model, RedirectAttributes redirect) {
         Usuario usuario = getUsuarioAutenticado(auth);
@@ -129,8 +129,8 @@ public class MockEndpointController {
      * Muestra el detalle de un mock con su URL y token JWT.
      */
     @GetMapping("/detalle/{mockId}")
-    public String detalle(@PathVariable Long proyectoId,
-                          @PathVariable Long mockId,
+    public String detalle(@PathVariable("proyectoId") Long proyectoId,
+                          @PathVariable("mockId") Long mockId,
                           Authentication auth,
                           Model model, RedirectAttributes redirect) {
         Usuario usuario = getUsuarioAutenticado(auth);
@@ -158,19 +158,19 @@ public class MockEndpointController {
      * Crea un nuevo mock dentro del proyecto.
      */
     @PostMapping("/crear")
-    public String crear(@PathVariable Long proyectoId,
-                        @RequestParam String nombre,
-                        @RequestParam(required = false) String descripcion,
-                        @RequestParam String ruta,
-                        @RequestParam String metodo,
-                        @RequestParam int codigoRespuesta,
-                        @RequestParam String contentType,
-                        @RequestParam(required = false) String body,
-                        @RequestParam(required = false) List<String> headerKeys,
-                        @RequestParam(required = false) List<String> headerValues,
-                        @RequestParam(defaultValue = "0") int delay,
-                        @RequestParam String tipoExpiracion,
-                        @RequestParam(defaultValue = "false") boolean requiereJwt,
+    public String crear(@PathVariable("proyectoId") Long proyectoId,
+                        @RequestParam("nombre") String nombre,
+                        @RequestParam(value = "descripcion", required = false) String descripcion,
+                        @RequestParam("ruta") String ruta,
+                        @RequestParam("metodo") String metodo,
+                        @RequestParam("codigoRespuesta") int codigoRespuesta,
+                        @RequestParam("contentType") String contentType,
+                        @RequestParam(value = "body", required = false) String body,
+                        @RequestParam(value = "headerKeys", required = false) List<String> headerKeys,
+                        @RequestParam(value = "headerValues", required = false) List<String> headerValues,
+                        @RequestParam(value = "delay", defaultValue = "0") int delay,
+                        @RequestParam("tipoExpiracion") String tipoExpiracion,
+                        @RequestParam(value = "requiereJwt", defaultValue = "false") boolean requiereJwt,
                         Authentication auth,
                         RedirectAttributes redirect) {
         try {
@@ -210,21 +210,21 @@ public class MockEndpointController {
      * Actualiza un mock existente.
      */
     @PostMapping("/actualizar/{mockId}")
-    public String actualizar(@PathVariable Long proyectoId,
-                             @PathVariable Long mockId,
-                             @RequestParam String nombre,
-                             @RequestParam(required = false) String descripcion,
-                             @RequestParam String ruta,
-                             @RequestParam String metodo,
-                             @RequestParam int codigoRespuesta,
-                             @RequestParam String contentType,
-                             @RequestParam(required = false) String body,
-                             @RequestParam(required = false) List<String> headerKeys,
-                             @RequestParam(required = false) List<String> headerValues,
-                             @RequestParam(defaultValue = "0") int delay,
-                             @RequestParam String tipoExpiracion,
-                             @RequestParam(defaultValue = "false") boolean requiereJwt,
-                             @RequestParam(defaultValue = "true") boolean activo,
+    public String actualizar(@PathVariable("proyectoId") Long proyectoId,
+                             @PathVariable("mockId") Long mockId,
+                             @RequestParam("nombre") String nombre,
+                             @RequestParam(value = "descripcion", required = false) String descripcion,
+                             @RequestParam("ruta") String ruta,
+                             @RequestParam("metodo") String metodo,
+                             @RequestParam("codigoRespuesta") int codigoRespuesta,
+                             @RequestParam("contentType") String contentType,
+                             @RequestParam(value = "body", required = false) String body,
+                             @RequestParam(value = "headerKeys", required = false) List<String> headerKeys,
+                             @RequestParam(value = "headerValues", required = false) List<String> headerValues,
+                             @RequestParam(value = "delay", defaultValue = "0") int delay,
+                             @RequestParam("tipoExpiracion") String tipoExpiracion,
+                             @RequestParam(value = "requiereJwt", defaultValue = "false") boolean requiereJwt,
+                             @RequestParam(value = "activo", defaultValue = "true") boolean activo,
                              Authentication auth,
                              RedirectAttributes redirect) {
         try {
@@ -263,8 +263,8 @@ public class MockEndpointController {
      * Elimina un mock.
      */
     @PostMapping("/eliminar/{mockId}")
-    public String eliminar(@PathVariable Long proyectoId,
-                           @PathVariable Long mockId,
+    public String eliminar(@PathVariable("proyectoId") Long proyectoId,
+                           @PathVariable("mockId") Long mockId,
                            Authentication auth,
                            RedirectAttributes redirect) {
         try {

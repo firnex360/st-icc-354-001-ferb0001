@@ -64,7 +64,7 @@ public class ProyectoController {
      * Muestra el formulario para editar un proyecto existente.
      */
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable Long id, Authentication auth,
+    public String mostrarFormularioEditar(@PathVariable("id") Long id, Authentication auth,
                                           Model model, RedirectAttributes redirect) {
         Usuario usuario = getUsuarioAutenticado(auth);
 
@@ -85,8 +85,8 @@ public class ProyectoController {
      * Crea un nuevo proyecto asignado al usuario autenticado.
      */
     @PostMapping("/crear")
-    public String crear(@RequestParam String nombre,
-                        @RequestParam(required = false) String descripcion,
+    public String crear(@RequestParam("nombre") String nombre,
+                        @RequestParam(value = "descripcion", required = false) String descripcion,
                         Authentication auth,
                         RedirectAttributes redirect) {
         try {
@@ -108,9 +108,9 @@ public class ProyectoController {
      * Actualiza un proyecto existente.
      */
     @PostMapping("/actualizar/{id}")
-    public String actualizar(@PathVariable Long id,
-                             @RequestParam String nombre,
-                             @RequestParam(required = false) String descripcion,
+    public String actualizar(@PathVariable("id") Long id,
+                             @RequestParam("nombre") String nombre,
+                             @RequestParam(value = "descripcion", required = false) String descripcion,
                              Authentication auth,
                              RedirectAttributes redirect) {
         try {
@@ -138,7 +138,7 @@ public class ProyectoController {
      * Elimina un proyecto y todos sus mocks.
      */
     @PostMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id, Authentication auth, RedirectAttributes redirect) {
+    public String eliminar(@PathVariable("id") Long id, Authentication auth, RedirectAttributes redirect) {
         try {
             Usuario usuario = getUsuarioAutenticado(auth);
             if (!usuario.esAdmin() && !proyectoService.perteneceAUsuario(id, usuario.getId())) {

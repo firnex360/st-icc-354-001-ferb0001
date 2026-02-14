@@ -49,7 +49,7 @@ public class AdminUsuarioController {
      * Muestra el formulario para editar un usuario existente.
      */
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEditar(@PathVariable Long id, Model model, RedirectAttributes redirect) {
+    public String mostrarFormularioEditar(@PathVariable("id") Long id, Model model, RedirectAttributes redirect) {
         return usuarioService.buscarPorId(id)
                 .map(usuario -> {
                     model.addAttribute("usuario", usuario);
@@ -67,10 +67,10 @@ public class AdminUsuarioController {
      * Crea un nuevo usuario.
      */
     @PostMapping("/crear")
-    public String crear(@RequestParam String username,
-                        @RequestParam String password,
-                        @RequestParam String nombre,
-                        @RequestParam(required = false) List<String> roles,
+    public String crear(@RequestParam("username") String username,
+                        @RequestParam("password") String password,
+                        @RequestParam("nombre") String nombre,
+                        @RequestParam(value = "roles", required = false) List<String> roles,
                         RedirectAttributes redirect) {
         try {
             List<Rol> rolesEnum = new ArrayList<>();
@@ -100,11 +100,11 @@ public class AdminUsuarioController {
      * Actualiza un usuario existente.
      */
     @PostMapping("/actualizar/{id}")
-    public String actualizar(@PathVariable Long id,
-                             @RequestParam String nombre,
-                             @RequestParam(required = false) String password,
-                             @RequestParam(required = false) List<String> roles,
-                             @RequestParam(required = false) boolean activo,
+    public String actualizar(@PathVariable("id") Long id,
+                             @RequestParam("nombre") String nombre,
+                             @RequestParam(value = "password", required = false) String password,
+                             @RequestParam(value = "roles", required = false) List<String> roles,
+                             @RequestParam(value = "activo", required = false) boolean activo,
                              RedirectAttributes redirect) {
         try {
             List<Rol> rolesEnum = new ArrayList<>();
@@ -133,7 +133,7 @@ public class AdminUsuarioController {
      * Elimina un usuario.
      */
     @PostMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id, RedirectAttributes redirect) {
+    public String eliminar(@PathVariable("id") Long id, RedirectAttributes redirect) {
         try {
             usuarioService.eliminarUsuario(id);
             redirect.addFlashAttribute("success", "msg.delete.success");

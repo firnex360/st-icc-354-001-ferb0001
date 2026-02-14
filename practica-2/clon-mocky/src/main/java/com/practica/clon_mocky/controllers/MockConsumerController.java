@@ -48,7 +48,7 @@ public class MockConsumerController {
             RequestMethod.DELETE, RequestMethod.PATCH,
             RequestMethod.HEAD, RequestMethod.OPTIONS
     })
-    public ResponseEntity<String> consumirMock(@PathVariable String uuid,
+    public ResponseEntity<String> consumirMock(@PathVariable("uuid") String uuid,
                                                 HttpServletRequest request) {
         try {
             // Determinar el método HTTP de la petición
