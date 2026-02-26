@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/layout :: head(#{login.title})}">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login</title>
+</head>
+<body class="login-page d-flex align-items-center justify-content-center min-vh-100">
+    <div class="login-container">
+        <div class="card shadow-lg border-0 login-card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-broadcast-pin display-4 text-primary"></i>
+                    <h3 class="mt-2" th:text="#{app.title}">Clon Mocky</h3>
+                    <p class="text-muted" th:text="#{login.welcome}">Bienvenido</p>
+                </div>
+
+                <!-- Error de autenticación -->
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span th:text="#{login.error}">Usuario o contraseña incorrectos</span>
+                </div>
+
+                <!-- Mensaje de logout exitoso -->
+                <div th:if="${logout}" class="alert alert-info" role="alert">
+                    <i class="bi bi-check-circle"></i>
+                    <span th:text="#{nav.logout}">Sesión cerrada</span>
+                </div>
+
+                <!-- Formulario de login -->
+                <form th:action="@{/login}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label" th:text="#{login.username}">Usuario</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   required autofocus th:placeholder="#{login.username}"/>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label" th:text="#{login.password}">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   required th:placeholder="#{login.password}"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2" th:text="#{login.submit}">
+                        Entrar
+                    </button>
+                </form>
+
+                <!-- Selector de idioma -->
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <a th:href="@{/login(lang='es')}" class="me-2">Español</a> |
+                        <a th:href="@{/login(lang='en')}" class="ms-2">English</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
