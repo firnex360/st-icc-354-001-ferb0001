@@ -1,0 +1,23 @@
+# Build outputs
+build/
+bin/
+out/
+
+# Gradle cache
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Docker data
+pgdata/
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.md
+LICENSE

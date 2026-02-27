@@ -33,8 +33,11 @@ dependencies {
 	// Thymeleaf extras para Spring Security (sec:authorize, etc.)
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-	// Base de datos H2 en memoria
+	// Base de datos H2 en memoria (para desarrollo local)
 	runtimeOnly 'com.h2database:h2'
+
+	// PostgreSQL (para Docker/producción)
+	runtimeOnly 'org.postgresql:postgresql'
 
 	// JWT (JSON Web Token)
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
