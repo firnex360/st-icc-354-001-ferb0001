@@ -3,7 +3,6 @@ package com.pucmm.avanzada.jms.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pucmm.avanzada.jms.model.SensorData;
 import com.pucmm.avanzada.jms.repository.SensorDataRepository;
-import jakarta.jms.TextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -36,12 +35,12 @@ public class SensorMessageListener {
 
     /**
      * Escucha el topic JMS "notificacion_sensores" (pub/sub).
-     * El containerFactory usa pubSubDomain=true para suscribirse a topics.
+     * Recibe el payload como byte[] (STOMP envía bytes) y lo convierte a String.
      */
     @JmsListener(destination = "notificacion_sensores", containerFactory = "jmsListenerContainerFactory")
-    public void onMessage(TextMessage message) {
+    public void onMessage(byte[] messageBytes) {
         try {
-            String json = message.getText();
+            String json = new String(messageBytes, java.nio.charset.StandardCharsets.UTF_8);
             log.info("Mensaje recibido del topic: {}", json);
 
             // Deserializar JSON a entidad
