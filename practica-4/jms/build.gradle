@@ -6,11 +6,11 @@ plugins {
 
 group = 'com.pucmm.avanzada'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+description = 'IoT Sensor Messaging System with JMS + WebSocket'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -19,8 +19,25 @@ repositories {
 }
 
 dependencies {
+	// Web & Thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+	// JMS (Spring JMS + ActiveMQ Classic 6.x client for Jakarta EE)
+	implementation 'org.springframework:spring-jms'
+	implementation 'org.apache.activemq:activemq-client:6.1.4'
+
+	// WebSocket (STOMP over SockJS for real-time frontend)
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// JPA + H2 embedded database
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	runtimeOnly 'com.h2database:h2'
+
+	// JSON
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

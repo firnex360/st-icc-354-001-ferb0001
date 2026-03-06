@@ -1,0 +1,51 @@
+services:
+
+  # ====== Broker de mensajes ActiveMQ Classic ======
+  activemq:
+    image: apache/activemq-classic:latest
+    container_name: activemq-broker
+    ports:
+      - "8161:8161"   # Consola web (admin/admin)
+      - "61616:61616" # OpenWire (JMS)
+      - "61613:61613" # STOMP (Python clients)
+    environment:
+      - ACTIVEMQ_CONNECTION_USER=admin
+      - ACTIVEMQ_CONNECTION_PASSWORD=admin
+
+  # ====== Servidor Spring Boot (JMS + WebSocket + H2) ======
+  spring-app:
+    build: ./jms
+    container_name: spring-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ACTIVEMQ_HOST=activemq
+    depends_on:
+      - activemq
+    restart: on-failure
+
+  # ====== Cliente IoT #1 (Python - STOMP) ======
+  sensor-1:
+    build: ./python-client
+    container_name: sensor-client-1
+    environment:
+      - DEVICE_ID=1
+      - BROKER_HOST=activemq
+      - BROKER_PORT=61613
+      - INTERVAL_SECONDS=60
+    depends_on:
+      - activemq
+    restart: on-failure
+
+  # ====== Cliente IoT #2 (Python - STOMP) ======
+  sensor-2:
+    build: ./python-client
+    container_name: sensor-client-2
+    environment:
+      - DEVICE_ID=2
+      - BROKER_HOST=activemq
+      - BROKER_PORT=61613
+      - INTERVAL_SECONDS=60
+    depends_on:
+      - activemq
+    restart: on-failure

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Sensor Monitor - Tiempo Real</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Adaptador de fechas para Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+    <!-- SockJS + STOMP para WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 20px 40px;
+            text-align: center;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: #60a5fa;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 12px;
+            background: #1e293b;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected { background: #22c55e; }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .chart-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .chart-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+
+        .log-section {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 40px 30px;
+        }
+
+        .log-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .log-card h2 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+        }
+
+        #log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .log-entry { padding: 2px 0; }
+        .log-entry.sensor-1 { color: #f97316; }
+        .log-entry.sensor-2 { color: #a78bfa; }
+
+        @media (max-width: 900px) {
+            .charts-container { grid-template-columns: 1fr; padding: 15px; }
+            header h1 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>&#x1F321; IoT Sensor Monitor - Tiempo Real</h1>
+    <p>Visualización de datos de temperatura y humedad vía JMS + WebSocket</p>
+</header>
+
+<div class="status-bar">
+    <div class="status-item">
+        <div class="status-dot" id="wsStatus"></div>
+        <span id="wsLabel">WebSocket: Desconectado</span>
+    </div>
+    <div class="status-item">
+        <span id="msgCount">Mensajes recibidos: 0</span>
+    </div>
+</div>
+
+<div class="charts-container">
+    <div class="chart-card">
+        <h2>&#x1F321;&#xFE0F; Temperatura vs Tiempo (°C)</h2>
+        <div class="chart-wrapper">
+            <canvas id="tempChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card">
+        <h2>&#x1F4A7; Humedad vs Tiempo (%)</h2>
+        <div class="chart-wrapper">
+            <canvas id="humChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="log-section">
+    <div class="log-card">
+        <h2>&#x1F4CB; Log de mensajes</h2>
+        <div id="log"></div>
+    </div>
+</div>
+
+<script>
+    // ====== Colores por sensor ======
+    const sensorColors = {
+        1: { bg: 'rgba(249, 115, 22, 0.2)', border: '#f97316', label: 'Sensor #1' },
+        2: { bg: 'rgba(167, 139, 250, 0.2)', border: '#a78bfa', label: 'Sensor #2' },
+        3: { bg: 'rgba(34, 197, 94, 0.2)',   border: '#22c55e', label: 'Sensor #3' },
+        4: { bg: 'rgba(56, 189, 248, 0.2)',  border: '#38bdf8', label: 'Sensor #4' }
+    };
+
+    function getColor(deviceId) {
+        return sensorColors[deviceId] || {
+            bg: 'rgba(148, 163, 184, 0.2)',
+            border: '#94a3b8',
+            label: 'Sensor #' + deviceId
+        };
+    }
+
+    // ====== Configuración común de Chart.js ======
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 400 },
+        scales: {
+            x: {
+                title: { display: true, text: 'Tiempo', color: '#94a3b8' },
+                ticks: { color: '#94a3b8', maxRotation: 45, maxTicksToLimit: 10 },
+                grid: { color: 'rgba(71, 85, 105, 0.3)' }
+            },
+            y: {
+                title: { display: true, text: '', color: '#94a3b8' },
+                ticks: { color: '#94a3b8' },
+                grid: { color: 'rgba(71, 85, 105, 0.3)' }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: { color: '#e2e8f0', usePointStyle: true, padding: 20 }
+            }
+        }
+    };
+
+    // ====== Crear gráficos ======
+    const tempCtx = document.getElementById('tempChart').getContext('2d');
+    const tempChart = new Chart(tempCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { ...commonOptions.scales.y, title: { display: true, text: 'Temperatura (°C)', color: '#94a3b8' } }
+            }
+        }
+    });
+
+    const humCtx = document.getElementById('humChart').getContext('2d');
+    const humChart = new Chart(humCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { ...commonOptions.scales.y, title: { display: true, text: 'Humedad (%)', color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // ====== Estado ======
+    let messageCount = 0;
+    // Datos por sensor: { deviceId: { labels: [], temps: [], hums: [] } }
+    const sensorDataMap = {};
+
+    /**
+     * Obtiene o crea el dataset de un sensor en un chart.
+     */
+    function getOrCreateDataset(chart, deviceId) {
+        let ds = chart.data.datasets.find(d => d.deviceId === deviceId);
+        if (!ds) {
+            const color = getColor(deviceId);
+            ds = {
+                label: color.label,
+                deviceId: deviceId,
+                data: [],
+                borderColor: color.border,
+                backgroundColor: color.bg,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                fill: true
+            };
+            chart.data.datasets.push(ds);
+        }
+        return ds;
+    }
+
+    /**
+     * Agrega un dato de sensor a los gráficos.
+     */
+    function addDataPoint(sensorData) {
+        const deviceId = sensorData.IdDispositivo || sensorData.idDispositivo;
+        const time = sensorData.fechaGeneracion;
+        const temp = sensorData.temperatura;
+        const hum = sensorData.humedad;
+
+        // Extraer solo HH:mm:ss para el label del eje X
+        const timeLabel = time.includes(' ') ? time.split(' ')[1] : time;
+
+        // Dataset de temperatura
+        const tempDs = getOrCreateDataset(tempChart, deviceId);
+        tempDs.data.push({ x: timeLabel, y: temp });
+
+        // Dataset de humedad
+        const humDs = getOrCreateDataset(humChart, deviceId);
+        humDs.data.push({ x: timeLabel, y: hum });
+
+        // Mantener las últimas 30 lecturas por sensor
+        if (tempDs.data.length > 30) tempDs.data.shift();
+        if (humDs.data.length > 30) humDs.data.shift();
+
+        // Recalcular labels globales (unión de todos los tiempos)
+        updateLabels(tempChart);
+        updateLabels(humChart);
+
+        tempChart.update();
+        humChart.update();
+
+        // Actualizar contador
+        messageCount++;
+        document.getElementById('msgCount').textContent = 'Mensajes recibidos: ' + messageCount;
+
+        // Log
+        addLog(deviceId, time, temp, hum);
+    }
+
+    /**
+     * Recalcula los labels del eje X tomando todos los puntos de todos los datasets.
+     */
+    function updateLabels(chart) {
+        const allLabels = new Set();
+        chart.data.datasets.forEach(ds => {
+            ds.data.forEach(pt => allLabels.add(pt.x));
+        });
+        chart.data.labels = Array.from(allLabels).sort();
+    }
+
+    /**
+     * Escribe una entrada en el log visual.
+     */
+    function addLog(deviceId, time, temp, hum) {
+        const logDiv = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry sensor-' + deviceId;
+        entry.textContent = `[${time}] Sensor #${deviceId} → Temp: ${temp}°C | Hum: ${hum}%`;
+        logDiv.prepend(entry);
+
+        // Limitar a 50 entradas
+        while (logDiv.children.length > 50) {
+            logDiv.removeChild(logDiv.lastChild);
+        }
+    }
+
+    // ====== Cargar datos históricos al iniciar ======
+    function loadHistoricalData() {
+        fetch('/api/sensores')
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(d => addDataPoint(d));
+                console.log('Datos históricos cargados:', data.length);
+            })
+            .catch(err => console.warn('No se pudieron cargar datos históricos:', err));
+    }
+
+    // ====== Conexión WebSocket ======
+    function connectWebSocket() {
+        const socket = new SockJS('/ws');
+        const stompClient = Stomp.over(socket);
+        stompClient.debug = null; // Silenciar logs de STOMP en consola
+
+        stompClient.connect({}, function(frame) {
+            console.log('Conectado al WebSocket:', frame);
+
+            // Actualizar indicador de estado
+            document.getElementById('wsStatus').classList.add('connected');
+            document.getElementById('wsLabel').textContent = 'WebSocket: Conectado';
+
+            // Suscribirse al topic de sensores
+            stompClient.subscribe('/topic/sensores', function(message) {
+                const sensorData = JSON.parse(message.body);
+                console.log('Dato recibido:', sensorData);
+                addDataPoint(sensorData);
+            });
+
+        }, function(error) {
+            console.error('Error WebSocket:', error);
+            document.getElementById('wsStatus').classList.remove('connected');
+            document.getElementById('wsLabel').textContent = 'WebSocket: Desconectado';
+
+            // Reintentar conexión en 5 segundos
+            setTimeout(connectWebSocket, 5000);
+        });
+    }
+
+    // ====== Iniciar ======
+    window.onload = function() {
+        loadHistoricalData();
+        connectWebSocket();
+    };
+</script>
+
+</body>
+</html>
