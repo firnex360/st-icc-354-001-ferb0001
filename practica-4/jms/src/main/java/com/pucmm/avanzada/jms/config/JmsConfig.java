@@ -20,13 +20,22 @@ public class JmsConfig {
     @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
 
+    @Value("${spring.activemq.user:admin}")
+    private String brokerUser;
+
+    @Value("${spring.activemq.password:admin}")
+    private String brokerPassword;
+
     /**
      * Fábrica de conexiones hacia ActiveMQ usando OpenWire (TCP).
+     * Incluye credenciales de autenticación.
      */
     @Bean
     public ActiveMQConnectionFactory activeMQConnectionFactory() {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory();
         factory.setBrokerURL(brokerUrl);
+        factory.setUserName(brokerUser);
+        factory.setPassword(brokerPassword);
         factory.setTrustAllPackages(true);
         return factory;
     }
