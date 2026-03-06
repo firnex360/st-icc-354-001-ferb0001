@@ -26,7 +26,7 @@ services:
   # ==============================
   app:
     build:
-      context: .
+      context: ./clon-mocky
       dockerfile: Dockerfile
     image: ${DOCKERHUB_USER:-dummy-name}/clon-mocky:latest
     container_name: clonmocky-app
