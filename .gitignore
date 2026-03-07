@@ -37,4 +37,7 @@ out/
 ### VS Code ###
 .vscode/
 
+### POSGRES ###
+pgdata/
+
 

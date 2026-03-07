@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-clonmocky}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-clonmocky}
     volumes:
-      - ${DB_DATA_PATH:-./pgdata}:/var/lib/postgresql/data
+      - ${DB_DATA_PATH:-./pgdata}:/var/lib/postgresql2/data
     networks:
       - clon-mocky-net
     healthcheck:
