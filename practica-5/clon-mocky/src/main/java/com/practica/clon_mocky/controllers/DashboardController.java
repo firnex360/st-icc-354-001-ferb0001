@@ -4,6 +4,7 @@ import com.practica.clon_mocky.entities.Usuario;
 import com.practica.clon_mocky.services.MockEndpointService;
 import com.practica.clon_mocky.services.ProyectoService;
 import com.practica.clon_mocky.services.UsuarioService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class DashboardController {
+
+    @Value("${server.port}")
+    private String serverPort;
 
     private final UsuarioService usuarioService;
     private final ProyectoService proyectoService;
@@ -40,6 +44,7 @@ public class DashboardController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         model.addAttribute("usuario", usuario);
+        model.addAttribute("instancePort", serverPort);
 
         if (usuario.esAdmin()) {
             // Admin ve todo

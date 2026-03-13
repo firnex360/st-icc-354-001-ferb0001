@@ -1,74 +1,123 @@
 services:
-
-  # ==============================
-  # Base de Datos - PostgreSQL
-  # ==============================
-  db:
-    image: postgres:17-alpine
-    container_name: clonmocky-db
+  mysql:
+    image: mysql:8.4
+    container_name: clonmocky-mysql
     restart: unless-stopped
+    ports:
+      - "33006:3306"
     environment:
-      POSTGRES_DB: ${DB_NAME:-clonmocky}
-      POSTGRES_USER: ${DB_USERNAME:-clonmocky}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-clonmocky}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mocky_db
     volumes:
-      - ${DB_DATA_PATH:-./pgdata}:/var/lib/postgresql/data
+      - mysql-data:/var/lib/mysql
     networks:
       - clon-mocky-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-clonmocky} -d ${DB_NAME:-clonmocky}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # ==============================
-  # Aplicación Spring Boot
-  # ==============================
-  app:
+  redis:
+    image: redis:7-alpine
+    container_name: clonmocky-redis
+    restart: unless-stopped
+    networks:
+      - clon-mocky-net
+
+  app1:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USER:-dummy-name}/clon-mocky:latest
-    container_name: clonmocky-app
+    container_name: clonmocky-app1
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8080}:8080"
-    environment:
-      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/clonmocky}
-      DB_DRIVER: ${DB_DRIVER:-org.postgresql.Driver}
-      DB_USERNAME: ${DB_USERNAME:-clonmocky}
-      DB_PASSWORD: ${DB_PASSWORD:-clonmocky}
-      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
-      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
-      JWT_SECRET: ${JWT_SECRET:-Y2xvbi1tb2NreS1zZWNyZXQta2V5LXByYWN0aWNhLTIwMjUtc3ByaW5nLWJvb3Q=}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-60}
     depends_on:
-      db:
-        condition: service_healthy
+      - mysql
+      - redis
+    environment:
+      APP_PORT: 8080
+      DB_URL: jdbc:mysql://mysql:3306/mocky_db
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JPA_DDL_AUTO: update
+      JPA_SHOW_SQL: "true"
+      JWT_SECRET: Y2xvbi1tb2NreS1zZWNyZXQta2V5LXByYWN0aWNhLTIwMjUtc3ByaW5nLWJvb3Q=
+      JWT_EXPIRATION: 60
+    expose:
+      - "8080"
     networks:
       - clon-mocky-net
 
-  # ==============================
-  # PgAdmin - Cliente Web para PostgreSQL
-  # ==============================
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: clonmocky-pgadmin
+  app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clonmocky-app2
     restart: unless-stopped
-    ports:
-      - "${PGADMIN_PORT:-8082}:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
     depends_on:
-      db:
-        condition: service_healthy
+      - mysql
+      - redis
+    environment:
+      APP_PORT: 8081
+      DB_URL: jdbc:mysql://mysql:3306/mocky_db
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JPA_DDL_AUTO: update
+      JPA_SHOW_SQL: "true"
+      JWT_SECRET: Y2xvbi1tb2NreS1zZWNyZXQta2V5LXByYWN0aWNhLTIwMjUtc3ByaW5nLWJvb3Q=
+      JWT_EXPIRATION: 60
+    expose:
+      - "8081"
     networks:
       - clon-mocky-net
 
-# ==============================
-# Red personalizada
-# ==============================
+  app3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clonmocky-app3
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      APP_PORT: 8082
+      DB_URL: jdbc:mysql://mysql:3306/mocky_db
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JPA_DDL_AUTO: update
+      JPA_SHOW_SQL: "true"
+      JWT_SECRET: Y2xvbi1tb2NreS1zZWNyZXQta2V5LXByYWN0aWNhLTIwMjUtc3ByaW5nLWJvb3Q=
+      JWT_EXPIRATION: 60
+    expose:
+      - "8082"
+    networks:
+      - clon-mocky-net
+
+  haproxy:
+    image: haproxy:3.0-alpine
+    container_name: clonmocky-haproxy
+    restart: unless-stopped
+    depends_on:
+      - app1
+      - app2
+      - app3
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/certs:/etc/ssl/certs:ro
+    networks:
+      - clon-mocky-net
+
+volumes:
+  mysql-data:
+
 networks:
   clon-mocky-net:
     driver: bridge
