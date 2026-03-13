@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/layout :: head(${esNuevo} ? #{user.create} : #{user.edit})}">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Usuario</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container flex-grow-1">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h4 class="mb-0">
+                            <i class="bi" th:classappend="${esNuevo} ? 'bi-person-plus' : 'bi-pencil-square'"></i>
+                            <span th:text="${esNuevo} ? #{user.create} : #{user.edit}">Usuario</span>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${esNuevo} ? @{/admin/usuarios/crear} : @{'/admin/usuarios/actualizar/' + ${usuario.id}}"
+                              method="post">
+
+                            <!-- Username (solo para nuevo) -->
+                            <div class="mb-3" th:if="${esNuevo}">
+                                <label for="username" class="form-label" th:text="#{user.username}">Usuario</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username"
+                                           th:value="${usuario.username}" required/>
+                                </div>
+                            </div>
+
+                            <!-- Mostrar username en edición (readonly) -->
+                            <div class="mb-3" th:unless="${esNuevo}">
+                                <label class="form-label" th:text="#{user.username}">Usuario</label>
+                                <input type="text" class="form-control" th:value="${usuario.username}"
+                                       readonly disabled title="Username"/>
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label" th:text="#{user.name}">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre"
+                                       th:value="${usuario.nombre}" required/>
+                            </div>
+
+                            <!-- Contraseña -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label" th:text="#{user.password}">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       th:placeholder="${esNuevo} ? '' : 'Dejar en blanco para mantener la actual'"
+                                       th:required="${esNuevo}"/>
+                                <div class="form-text" th:unless="${esNuevo}">
+                                    Dejar en blanco para mantener la contraseña actual
+                                </div>
+                            </div>
+
+                            <!-- Roles -->
+                            <div class="mb-3">
+                                <label class="form-label" th:text="#{user.roles}">Roles</label>
+                                <div class="d-flex gap-3">
+                                    <div th:each="rol : ${roles}" class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="roles" th:value="${rol.name()}"
+                                               th:id="${'rol_' + rol.name()}"
+                                               th:title="${rol.name()}"
+                                               title="Rol"
+                                               th:checked="${usuario.roles != null && usuario.roles.contains(rol)}"/>
+                                        <label class="form-check-label" th:for="${'rol_' + rol.name()}"
+                                               th:text="${rol.name().replace('ROLE_', '')}">ROL</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Activo (solo en edición) -->
+                            <div class="mb-3" th:unless="${esNuevo}">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="activo" name="activo"
+                                           value="true" th:checked="${usuario.activo}"/>
+                                    <label class="form-check-label" for="activo" th:text="#{user.active}">Activo</label>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/admin/usuarios}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> <span th:text="#{user.cancel}">Cancelar</span>
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg"></i> <span th:text="#{user.save}">Guardar</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

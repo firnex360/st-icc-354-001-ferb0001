@@ -1,0 +1,74 @@
+services:
+
+  # ==============================
+  # Base de Datos - PostgreSQL
+  # ==============================
+  db:
+    image: postgres:17-alpine
+    container_name: clonmocky-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-clonmocky}
+      POSTGRES_USER: ${DB_USERNAME:-clonmocky}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-clonmocky}
+    volumes:
+      - ${DB_DATA_PATH:-./pgdata}:/var/lib/postgresql2/data
+    networks:
+      - clon-mocky-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-clonmocky} -d ${DB_NAME:-clonmocky}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================
+  # Aplicación Spring Boot
+  # ==============================
+  app:
+    build:
+      context: ./clon-mocky
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:-dummy-name}/clon-mocky:latest
+    container_name: clonmocky-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/clonmocky}
+      DB_DRIVER: ${DB_DRIVER:-org.postgresql.Driver}
+      DB_USERNAME: ${DB_USERNAME:-clonmocky}
+      DB_PASSWORD: ${DB_PASSWORD:-clonmocky}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
+      JWT_SECRET: ${JWT_SECRET:-Y2xvbi1tb2NreS1zZWNyZXQta2V5LXByYWN0aWNhLTIwMjUtc3ByaW5nLWJvb3Q=}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-60}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - clon-mocky-net
+
+  # ==============================
+  # PgAdmin - Cliente Web para PostgreSQL
+  # ==============================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: clonmocky-pgadmin
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-8082}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - clon-mocky-net
+
+# ==============================
+# Red personalizada
+# ==============================
+networks:
+  clon-mocky-net:
+    driver: bridge

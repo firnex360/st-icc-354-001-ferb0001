@@ -1,0 +1,136 @@
+/* ========================================
+   Clon Mocky - Estilos personalizados
+   ======================================== */
+
+/* Layout general */
+html, body {
+    min-height: 100vh;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+main {
+    flex: 1;
+}
+
+/* Login */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+.login-card {
+    width: 100%;
+    min-width: 380px;
+    max-width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+.login-card .card-header {
+    background: #0f3460;
+    color: white;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+}
+.login-card .card-header h3 {
+    margin: 0;
+}
+
+/* Dashboard cards */
+.stat-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.stat-card.proyectos { border-color: #0d6efd; }
+.stat-card.mocks { border-color: #198754; }
+.stat-card.usuarios { border-color: #ffc107; }
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Tablas */
+.table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+}
+
+/* Badges de estado */
+.badge-activo { background-color: #198754; }
+.badge-inactivo { background-color: #dc3545; }
+.badge-expirado { background-color: #6c757d; }
+
+/* Mock detail */
+.mock-url-box {
+    background: #1a1a2e;
+    color: #00ff88;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    word-break: break-all;
+}
+.jwt-token-box {
+    background: #2d2d44;
+    color: #ffd700;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+/* Headers dinámicos (formulario) */
+.header-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+.header-row input {
+    flex: 1;
+}
+
+/* Método HTTP badges */
+.method-badge {
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+.method-GET { background: #61affe; color: white; }
+.method-POST { background: #49cc90; color: white; }
+.method-PUT { background: #fca130; color: white; }
+.method-DELETE { background: #f93e3e; color: white; }
+.method-PATCH { background: #50e3c2; color: white; }
+.method-HEAD { background: #9012fe; color: white; }
+.method-OPTIONS { background: #0d5aa7; color: white; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-card .stat-number { font-size: 1.5rem; }
+    .stat-card .stat-icon { font-size: 1.8rem; }
+    .table-responsive { font-size: 0.85rem; }
+}
+
+/* Utilities */
+.word-break-all {
+    word-break: break-all;
+}
