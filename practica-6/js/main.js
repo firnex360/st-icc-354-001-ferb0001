@@ -1,5 +1,6 @@
 import { fetchReservations, createReservation } from "./api.js";
 import {
+  fromIsoDateInput,
   getReservationDate,
   isDateWithinInputRange,
   isReservationActive,
@@ -159,7 +160,37 @@ async function handleCreateReservation(event) {
   }
 }
 
+function bindDatePicker(displayInput, pickerInput) {
+  if (!displayInput || !pickerInput) {
+    return;
+  }
+
+  const openPicker = () => {
+    if (typeof pickerInput.showPicker === "function") {
+      pickerInput.showPicker();
+      return;
+    }
+    pickerInput.focus();
+  };
+
+  displayInput.addEventListener("click", openPicker);
+  displayInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openPicker();
+    }
+  });
+
+  pickerInput.addEventListener("change", () => {
+    displayInput.value = fromIsoDateInput(pickerInput.value);
+  });
+}
+
 function bindEvents() {
+  bindDatePicker(elements.pastFromDate, elements.pastFromDatePicker);
+  bindDatePicker(elements.pastToDate, elements.pastToDatePicker);
+  bindDatePicker(elements.inputFechaReservaDate, elements.inputFechaReservaDatePicker);
+
   elements.addReservationBtn?.addEventListener("click", () => {
     clearForm(elements);
     openModal(elements);
@@ -196,7 +227,9 @@ function bindEvents() {
   elements.showActiveBtn?.addEventListener("click", async () => {
     togglePastPanel(elements, false);
     elements.pastFromDate.value = "";
+    elements.pastFromDatePicker.value = "";
     elements.pastToDate.value = "";
+    elements.pastToDatePicker.value = "";
     setPastRange("", "");
     await refreshActiveReservations();
   });

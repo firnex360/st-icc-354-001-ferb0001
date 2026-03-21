@@ -32,10 +32,16 @@
         <h2>Filtrar registros pasados</h2>
         <div class="filter-grid">
           <label for="pastFromDate">Desde</label>
-          <input id="pastFromDate" type="date" />
+          <div class="date-input-wrap">
+            <input id="pastFromDate" type="text" placeholder="dd/MM/yyyy" readonly />
+            <input id="pastFromDatePicker" type="date" class="native-date-picker" aria-label="Seleccionar fecha desde" />
+          </div>
 
           <label for="pastToDate">Hasta</label>
-          <input id="pastToDate" type="date" />
+          <div class="date-input-wrap">
+            <input id="pastToDate" type="text" placeholder="dd/MM/yyyy" readonly />
+            <input id="pastToDatePicker" type="date" class="native-date-picker" aria-label="Seleccionar fecha hasta" />
+          </div>
         </div>
         <div class="panel-actions">
           <button id="applyPastFilterBtn" class="btn btn-secondary" type="button">Aplicar</button>
@@ -87,7 +93,22 @@
             </select>
 
             <label for="inputFechaReservaDate">Fecha Reserva</label>
-            <input id="inputFechaReservaDate" name="fechaReservaDate" type="date" required />
+            <div class="date-input-wrap">
+              <input
+                id="inputFechaReservaDate"
+                name="fechaReservaDate"
+                type="text"
+                placeholder="dd/MM/yyyy"
+                readonly
+                required
+              />
+              <input
+                id="inputFechaReservaDatePicker"
+                type="date"
+                class="native-date-picker"
+                aria-label="Seleccionar fecha de reserva"
+              />
+            </div>
 
             <label for="inputFechaReservaHour">Hora Reserva</label>
             <select id="inputFechaReservaHour" name="fechaReservaHour" required>

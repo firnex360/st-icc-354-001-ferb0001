@@ -1,4 +1,4 @@
-import { formatReservationDate, fromIsoDateInput, getReservationDate } from "./date-utils.js";
+import { formatReservationDate, getReservationDate } from "./date-utils.js";
 
 function safeText(value) {
   if (value === null || value === undefined) {
@@ -15,7 +15,9 @@ export function getUIElements() {
     pastFilterPanel: document.getElementById("pastFilterPanel"),
     pastRecordsToggle: document.getElementById("pastRecordsToggle"),
     pastFromDate: document.getElementById("pastFromDate"),
+    pastFromDatePicker: document.getElementById("pastFromDatePicker"),
     pastToDate: document.getElementById("pastToDate"),
+    pastToDatePicker: document.getElementById("pastToDatePicker"),
     applyPastFilterBtn: document.getElementById("applyPastFilterBtn"),
     showActiveBtn: document.getElementById("showActiveBtn"),
     addReservationBtn: document.getElementById("addReservationBtn"),
@@ -28,6 +30,7 @@ export function getUIElements() {
     inputCarrera: document.getElementById("inputCarrera"),
     inputLaboratorio: document.getElementById("inputLaboratorio"),
     inputFechaReservaDate: document.getElementById("inputFechaReservaDate"),
+    inputFechaReservaDatePicker: document.getElementById("inputFechaReservaDatePicker"),
     inputFechaReservaHour: document.getElementById("inputFechaReservaHour"),
   };
 }
@@ -112,9 +115,8 @@ export function clearForm(elements) {
 export function getReservationFormData(elements) {
   const selectedDate = elements.inputFechaReservaDate?.value || "";
   const selectedHour = elements.inputFechaReservaHour?.value || "";
-  const formattedDate = fromIsoDateInput(selectedDate);
   const fechaReserva =
-    formattedDate && selectedHour ? `${formattedDate} ${selectedHour}:00:00` : "";
+    selectedDate && selectedHour ? `${selectedDate} ${selectedHour}:00:00` : "";
 
   return {
     id: elements.inputId?.value.trim() || "",
