@@ -32,16 +32,10 @@
         <h2>Filtrar registros pasados</h2>
         <div class="filter-grid">
           <label for="pastFromDate">Desde</label>
-          <div class="date-input-wrap">
-            <input id="pastFromDate" type="text" placeholder="dd/MM/yyyy" readonly />
-            <input id="pastFromDatePicker" type="date" class="native-date-picker" aria-label="Seleccionar fecha desde" />
-          </div>
+          <input id="pastFromDate" type="text" inputmode="numeric" placeholder="dd/MM/yyyy" />
 
           <label for="pastToDate">Hasta</label>
-          <div class="date-input-wrap">
-            <input id="pastToDate" type="text" placeholder="dd/MM/yyyy" readonly />
-            <input id="pastToDatePicker" type="date" class="native-date-picker" aria-label="Seleccionar fecha hasta" />
-          </div>
+          <input id="pastToDate" type="text" inputmode="numeric" placeholder="dd/MM/yyyy" />
         </div>
         <div class="panel-actions">
           <button id="applyPastFilterBtn" class="btn btn-secondary" type="button">Aplicar</button>
@@ -93,22 +87,14 @@
             </select>
 
             <label for="inputFechaReservaDate">Fecha Reserva</label>
-            <div class="date-input-wrap">
-              <input
-                id="inputFechaReservaDate"
-                name="fechaReservaDate"
-                type="text"
-                placeholder="dd/MM/yyyy"
-                readonly
-                required
-              />
-              <input
-                id="inputFechaReservaDatePicker"
-                type="date"
-                class="native-date-picker"
-                aria-label="Seleccionar fecha de reserva"
-              />
-            </div>
+            <input
+              id="inputFechaReservaDate"
+              name="fechaReservaDate"
+              type="text"
+              inputmode="numeric"
+              placeholder="dd/MM/yyyy"
+              required
+            />
 
             <label for="inputFechaReservaHour">Hora Reserva</label>
             <select id="inputFechaReservaHour" name="fechaReservaHour" required>
