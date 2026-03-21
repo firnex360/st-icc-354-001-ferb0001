@@ -14,3 +14,4 @@ Para cualquier información / directorio / archivo faltante, existe la posibilid
    - **Microsoft Teams:** GUSTAVO JOSE HENRIQUEZ CONTRERAS <br>
    - **Correo Electrónico:** 20130216@ce.pucmm.edu.do
 
+[practica 6666](https://github.com/firnex360/st-icc-354-001-ferb0001/practica-6)
