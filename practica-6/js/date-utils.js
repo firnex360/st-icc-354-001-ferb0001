@@ -1,4 +1,5 @@
 const RESERVATION_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2}):(\d{2})$/;
+const DATE_ONLY_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
 function pad2(value) {
   return String(value).padStart(2, "0");
@@ -74,24 +75,76 @@ export function isReservationActive(reservation, now = new Date()) {
   return reservationDate.getTime() >= now.getTime();
 }
 
+export function parseDateOnlyInput(value) {
+  if (!value || typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  const match = trimmed.match(DATE_ONLY_REGEX);
+  if (!match) {
+    return null;
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  const parsed = new Date(year, month - 1, day, 0, 0, 0);
+
+  const isExactDate =
+    parsed.getFullYear() === year &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day;
+
+  return isExactDate ? parsed : null;
+}
+
+export function fromIsoDateInput(isoDateInput) {
+  if (!isoDateInput || typeof isoDateInput !== "string") {
+    return "";
+  }
+
+  const [year, month, day] = isoDateInput.split("-");
+  if (!year || !month || !day) {
+    return "";
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
 export function toIsoRangeFromDateInput(fromDateInput, toDateInput) {
   if (!fromDateInput || !toDateInput) {
     return { startDate: "", endDate: "" };
   }
 
-  const [fromYear, fromMonth, fromDay] = fromDateInput.split("-").map(Number);
-  const [toYear, toMonth, toDay] = toDateInput.split("-").map(Number);
+  const fromDate = parseDateOnlyInput(fromDateInput);
+  const toDate = parseDateOnlyInput(toDateInput);
 
-  const fromDate = new Date(fromYear, fromMonth - 1, fromDay, 0, 0, 0);
-  const toDate = new Date(toYear, toMonth - 1, toDay, 23, 59, 59);
-
-  if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+  if (!fromDate || !toDate) {
     return { startDate: "", endDate: "" };
   }
 
+  const fromDateStart = new Date(
+    fromDate.getFullYear(),
+    fromDate.getMonth(),
+    fromDate.getDate(),
+    0,
+    0,
+    0
+  );
+  const toDateEnd = new Date(
+    toDate.getFullYear(),
+    toDate.getMonth(),
+    toDate.getDate(),
+    23,
+    59,
+    59
+  );
+
   return {
-    startDate: fromDate.toISOString(),
-    endDate: toDate.toISOString(),
+    startDate: fromDateStart.toISOString(),
+    endDate: toDateEnd.toISOString(),
   };
 }
 
@@ -104,11 +157,29 @@ export function isDateWithinInputRange(reservationDate, fromDateInput, toDateInp
     return true;
   }
 
-  const [fromYear, fromMonth, fromDay] = fromDateInput.split("-").map(Number);
-  const [toYear, toMonth, toDay] = toDateInput.split("-").map(Number);
+  const fromDate = parseDateOnlyInput(fromDateInput);
+  const toDate = parseDateOnlyInput(toDateInput);
 
-  const fromDate = new Date(fromYear, fromMonth - 1, fromDay, 0, 0, 0);
-  const toDate = new Date(toYear, toMonth - 1, toDay, 23, 59, 59);
+  if (!fromDate || !toDate) {
+    return false;
+  }
 
-  return reservationDate >= fromDate && reservationDate <= toDate;
+  const fromDateStart = new Date(
+    fromDate.getFullYear(),
+    fromDate.getMonth(),
+    fromDate.getDate(),
+    0,
+    0,
+    0
+  );
+  const toDateEnd = new Date(
+    toDate.getFullYear(),
+    toDate.getMonth(),
+    toDate.getDate(),
+    23,
+    59,
+    59
+  );
+
+  return reservationDate >= fromDateStart && reservationDate <= toDateEnd;
 }

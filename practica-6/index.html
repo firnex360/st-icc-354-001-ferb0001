@@ -13,9 +13,6 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="bg-orb orb-a" aria-hidden="true"></div>
-    <div class="bg-orb orb-b" aria-hidden="true"></div>
-
     <main class="app-shell">
       <header class="topbar">
         <h1>Reservas de Laboratorio- EICT</h1>
@@ -35,10 +32,10 @@
         <h2>Filtrar registros pasados</h2>
         <div class="filter-grid">
           <label for="pastFromDate">Desde</label>
-          <input id="pastFromDate" type="date" />
+          <input id="pastFromDate" type="text" inputmode="numeric" placeholder="dd/MM/yyyy" />
 
           <label for="pastToDate">Hasta</label>
-          <input id="pastToDate" type="date" />
+          <input id="pastToDate" type="text" inputmode="numeric" placeholder="dd/MM/yyyy" />
         </div>
         <div class="panel-actions">
           <button id="applyPastFilterBtn" class="btn btn-secondary" type="button">Aplicar</button>
@@ -89,17 +86,30 @@
               <option value="Lab 4">Lab 4</option>
             </select>
 
-            <label for="inputFechaReserva">Fecha Reserva</label>
-            <input
-              id="inputFechaReserva"
-              name="fechaReserva"
-              type="text"
-              placeholder="dd/MM/yyyy HH:mm:ss"
-              required
-            />
+            <label for="inputFechaReservaDate">Fecha Reserva</label>
+            <input id="inputFechaReservaDate" name="fechaReservaDate" type="date" required />
+
+            <label for="inputFechaReservaHour">Hora Reserva</label>
+            <select id="inputFechaReservaHour" name="fechaReservaHour" required>
+              <option value="">Selecciona una hora</option>
+              <option value="08">08:00:00</option>
+              <option value="09">09:00:00</option>
+              <option value="10">10:00:00</option>
+              <option value="11">11:00:00</option>
+              <option value="12">12:00:00</option>
+              <option value="13">13:00:00</option>
+              <option value="14">14:00:00</option>
+              <option value="15">15:00:00</option>
+              <option value="16">16:00:00</option>
+              <option value="17">17:00:00</option>
+              <option value="18">18:00:00</option>
+              <option value="19">19:00:00</option>
+              <option value="20">20:00:00</option>
+              <option value="21">21:00:00</option>
+            </select>
           </div>
 
-          <p class="help-text">Formato requerido: dd/MM/yyyy HH:mm:ss. Ejemplo: 25/03/2026 15:00:00</p>
+          <p class="help-text">Registros pasados: use dd/MM/yyyy. Reserva: seleccione fecha y hora exacta.</p>
           <p id="formError" class="form-error" role="alert"></p>
 
           <footer class="modal-actions">
