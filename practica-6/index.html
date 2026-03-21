@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservas de Laboratorio - EICT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a" aria-hidden="true"></div>
+    <div class="bg-orb orb-b" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <h1>Reservas de Laboratorio- EICT</h1>
+        <button id="pastRecordsToggle" class="btn btn-link" type="button">
+          Registros Pasados
+        </button>
+      </header>
+
+      <section class="toolbar" aria-label="Acciones principales">
+        <button id="addReservationBtn" class="btn btn-primary" type="button">
+          Agregar Reserva
+        </button>
+        <span id="viewBadge" class="view-badge">Mostrando: Activas</span>
+      </section>
+
+      <section id="pastFilterPanel" class="panel hidden" aria-label="Filtro de registros pasados">
+        <h2>Filtrar registros pasados</h2>
+        <div class="filter-grid">
+          <label for="pastFromDate">Desde</label>
+          <input id="pastFromDate" type="date" />
+
+          <label for="pastToDate">Hasta</label>
+          <input id="pastToDate" type="date" />
+        </div>
+        <div class="panel-actions">
+          <button id="applyPastFilterBtn" class="btn btn-secondary" type="button">Aplicar</button>
+          <button id="showActiveBtn" class="btn btn-ghost" type="button">Volver a Activas</button>
+        </div>
+      </section>
+
+      <section class="table-wrap" aria-live="polite">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Laboratorio</th>
+              <th scope="col">Fecha y hora</th>
+            </tr>
+          </thead>
+          <tbody id="reservationsBody"></tbody>
+        </table>
+      </section>
+
+      <p id="statusMessage" class="status" role="status"></p>
+    </main>
+
+    <div id="reservationModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <section class="modal-card">
+        <header class="modal-header">
+          <h2 id="modalTitle">Registro Reserva</h2>
+        </header>
+
+        <form id="reservationForm" novalidate>
+          <div class="form-grid">
+            <label for="inputId">ID</label>
+            <input id="inputId" name="id" type="text" required />
+
+            <label for="inputNombre">Nombre</label>
+            <input id="inputNombre" name="nombre" type="text" required />
+
+            <label for="inputCarrera">Carrera</label>
+            <input id="inputCarrera" name="carrera" type="text" required />
+
+            <label for="inputLaboratorio">Laboratorio</label>
+            <select id="inputLaboratorio" name="laboratorio" required>
+              <option value="">Selecciona una opción</option>
+              <option value="Lab 1">Lab 1</option>
+              <option value="Lab 2">Lab 2</option>
+              <option value="Lab 3">Lab 3</option>
+              <option value="Lab 4">Lab 4</option>
+            </select>
+
+            <label for="inputFechaReserva">Fecha Reserva</label>
+            <input
+              id="inputFechaReserva"
+              name="fechaReserva"
+              type="text"
+              placeholder="dd/MM/yyyy HH:mm:ss"
+              required
+            />
+          </div>
+
+          <p class="help-text">Formato requerido: dd/MM/yyyy HH:mm:ss. Ejemplo: 25/03/2026 15:00:00</p>
+          <p id="formError" class="form-error" role="alert"></p>
+
+          <footer class="modal-actions">
+            <button class="btn btn-primary" type="submit">OK</button>
+            <button id="cancelModalBtn" class="btn btn-ghost" type="button">Cancel</button>
+          </footer>
+        </form>
+      </section>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
