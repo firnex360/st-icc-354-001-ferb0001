@@ -1,4 +1,4 @@
-import { parseDateOnlyInput, parseReservationDate } from "./date-utils.js";
+import { parseReservationDate } from "./date-utils.js";
 
 export function validateReservationPayload(payload) {
   if (!payload.id?.trim()) {
@@ -45,11 +45,11 @@ export function validatePastRange(from, to) {
     return "Debe seleccionar Desde y Hasta para filtrar registros pasados.";
   }
 
-  const fromDate = parseDateOnlyInput(from);
-  const toDate = parseDateOnlyInput(to);
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
 
-  if (!fromDate || !toDate) {
-    return "Rango inválido. Use formato dd/MM/yyyy.";
+  if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "Rango de fechas inválido.";
   }
 
   if (fromDate > toDate) {
