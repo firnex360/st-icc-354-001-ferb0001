@@ -15,9 +15,7 @@ export function getUIElements() {
     pastFilterPanel: document.getElementById("pastFilterPanel"),
     pastRecordsToggle: document.getElementById("pastRecordsToggle"),
     pastFromDate: document.getElementById("pastFromDate"),
-    pastFromDatePicker: document.getElementById("pastFromDatePicker"),
     pastToDate: document.getElementById("pastToDate"),
-    pastToDatePicker: document.getElementById("pastToDatePicker"),
     applyPastFilterBtn: document.getElementById("applyPastFilterBtn"),
     showActiveBtn: document.getElementById("showActiveBtn"),
     addReservationBtn: document.getElementById("addReservationBtn"),
@@ -30,7 +28,6 @@ export function getUIElements() {
     inputCarrera: document.getElementById("inputCarrera"),
     inputLaboratorio: document.getElementById("inputLaboratorio"),
     inputFechaReservaDate: document.getElementById("inputFechaReservaDate"),
-    inputFechaReservaDatePicker: document.getElementById("inputFechaReservaDatePicker"),
     inputFechaReservaHour: document.getElementById("inputFechaReservaHour"),
   };
 }

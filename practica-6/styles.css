@@ -221,18 +221,6 @@ select {
   background: #fff;
 }
 
-.date-input-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.native-date-picker {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .help-text {
   margin: 10px 0 0;
   font-size: 0.84rem;
