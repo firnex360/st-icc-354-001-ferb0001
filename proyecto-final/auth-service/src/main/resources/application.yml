@@ -1,0 +1,74 @@
+# =============================================================================
+# AUTHENTICATION & SECURITY MICROSERVICE - Configuration
+# =============================================================================
+# Handles user registration, login, and JWT token generation.
+# Connects to PostgreSQL and registers with Eureka Discovery Server.
+# =============================================================================
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service   # Name used to register in Eureka
+
+  # --- PostgreSQL Datasource ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hospedaje_auth
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  # --- JPA / Hibernate ---
+  jpa:
+    hibernate:
+      ddl-auto: update    # Auto-create/update tables in dev. Use "validate" in prod.
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# =============================================================================
+# JWT CONFIGURATION
+# =============================================================================
+# ⚠️  SECRET KEY:  This MUST match the key in the API Gateway!
+#     The value below is a Base64-encoded 256-bit HMAC-SHA key.
+#     In production, store it in an environment variable or Config Server.
+#     To generate a new one: openssl rand -base64 32
+# =============================================================================
+jwt:
+  secret: bWlDbGF2ZVNlY3JldGFQYXJhSldUX0hvc3BlZGFqZTIwMjY=
+  expiration-ms: 3600000   # Token validity: 1 hour (in milliseconds)
+
+# =============================================================================
+# DEFAULT ADMIN CREDENTIALS (created on first startup if absent)
+# =============================================================================
+app:
+  admin:
+    email: admin@hospedaje.com
+    password: Admin123!
+
+# --- Service Discovery: register with Eureka ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+# --- Logging ---
+logging:
+  level:
+    com.hospedaje.auth: DEBUG
+    org.springframework.security: DEBUG

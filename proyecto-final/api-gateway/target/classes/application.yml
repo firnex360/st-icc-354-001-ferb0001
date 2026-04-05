@@ -4,6 +4,7 @@
 # Single entry point for all client requests. Routes traffic to downstream
 # microservices using Eureka-based load balancing (lb:// URIs).
 # Integrates with Zipkin for end-to-end distributed tracing.
+# Validates JWT tokens via a global AuthenticationFilter.
 #
 # All routes are defined below. As new services are created,
 # add their route definitions here.
@@ -28,7 +29,17 @@ spring:
 
       # --- Explicit Route Definitions (for path-based routing) ---
       routes:
-        # ── Property Catalog Service ──────────────────────────────────
+        # ── Authentication Service (PUBLIC — no JWT required) ─────────
+        # The AuthenticationFilter's RouteValidator excludes /api/auth/login
+        # and /api/auth/register from JWT validation automatically.
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /auth/${segment}
+
+        # ── Property Catalog Service (SECURED) ────────────────────────
         - id: catalog-service
           uri: lb://CATALOG-SERVICE          # Eureka-resolved load-balanced URI
           predicates:
@@ -36,7 +47,7 @@ spring:
           filters:
             - RewritePath=/api/properties/(?<segment>.*), /api/properties/${segment}
 
-        # ── Reservation Service ───────────────────────────────────────
+        # ── Reservation Service (SECURED) ─────────────────────────────
         - id: reservation-service
           uri: lb://RESERVATION-SERVICE
           predicates:
@@ -44,15 +55,7 @@ spring:
           filters:
             - RewritePath=/api/reservations/(?<segment>.*), /api/reservations/${segment}
 
-        # ── Authentication & Security Service ─────────────────────────
-        - id: auth-service
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - RewritePath=/api/auth/(?<segment>.*), /api/auth/${segment}
-
-        # ── Reviews & Ratings Service ─────────────────────────────────
+        # ── Reviews & Ratings Service (SECURED) ───────────────────────
         - id: reviews-service
           uri: lb://REVIEWS-SERVICE
           predicates:
@@ -60,13 +63,23 @@ spring:
           filters:
             - RewritePath=/api/reviews/(?<segment>.*), /api/reviews/${segment}
 
-        # ── Notifications & Reports Service ───────────────────────────
+        # ── Notifications & Reports Service (SECURED) ─────────────────
         - id: notifications-service
           uri: lb://NOTIFICATIONS-SERVICE
           predicates:
             - Path=/api/notifications/**
           filters:
             - RewritePath=/api/notifications/(?<segment>.*), /api/notifications/${segment}
+
+# =============================================================================
+# JWT CONFIGURATION
+# =============================================================================
+# ⚠️  This secret MUST be identical to the one in the Auth Service!
+#     The Gateway validates tokens issued by the Auth Service using the same key.
+#     To generate a new key: openssl rand -base64 32
+# =============================================================================
+jwt:
+  secret: bWlDbGF2ZVNlY3JldGFQYXJhSldUX0hvc3BlZGFqZTIwMjY=
 
 # --- Service Discovery: register the gateway with Eureka ---
 eureka:
@@ -102,4 +115,5 @@ logging:
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
   level:
     org.springframework.cloud.gateway: DEBUG
+    com.hospedaje.infra.gateway.security: DEBUG
     reactor.netty: INFO

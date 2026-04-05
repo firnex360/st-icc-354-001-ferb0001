@@ -1,0 +1,26 @@
+{
+	"folders": [
+        {
+            "path": "gestion_hospedaje"
+        },
+        {
+            "path": "api-gateway"
+        },
+        {
+            "path": "discovery-server"
+        },
+        {
+            "path": "config-server"
+        },
+        {
+            "path": "catalog-service"
+        },
+        {
+            "path": "reservation-service"
+        },
+        {
+            "path": "auth-service"
+        }
+    ],
+    "settings": {}
+}
