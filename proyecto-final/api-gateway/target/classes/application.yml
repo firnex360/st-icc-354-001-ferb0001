@@ -1,0 +1,105 @@
+# =============================================================================
+# API GATEWAY (Spring Cloud Gateway) - Configuration
+# =============================================================================
+# Single entry point for all client requests. Routes traffic to downstream
+# microservices using Eureka-based load balancing (lb:// URIs).
+# Integrates with Zipkin for end-to-end distributed tracing.
+#
+# All routes are defined below. As new services are created,
+# add their route definitions here.
+# =============================================================================
+
+server:
+  port: 8080  # Public-facing port for the gateway
+
+spring:
+  application:
+    name: api-gateway
+
+  # --- Gateway Route Definitions ---
+  cloud:
+    gateway:
+      # Enables automatic route creation based on Eureka service IDs.
+      # You can still define explicit routes below for fine-grained control.
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true  # Use lowercase names in URLs
+
+      # --- Explicit Route Definitions (for path-based routing) ---
+      routes:
+        # ── Property Catalog Service ──────────────────────────────────
+        - id: catalog-service
+          uri: lb://CATALOG-SERVICE          # Eureka-resolved load-balanced URI
+          predicates:
+            - Path=/api/properties/**        # Match incoming requests on this path
+          filters:
+            - RewritePath=/api/properties/(?<segment>.*), /api/properties/${segment}
+
+        # ── Reservation Service ───────────────────────────────────────
+        - id: reservation-service
+          uri: lb://RESERVATION-SERVICE
+          predicates:
+            - Path=/api/reservations/**
+          filters:
+            - RewritePath=/api/reservations/(?<segment>.*), /api/reservations/${segment}
+
+        # ── Authentication & Security Service ─────────────────────────
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /api/auth/${segment}
+
+        # ── Reviews & Ratings Service ─────────────────────────────────
+        - id: reviews-service
+          uri: lb://REVIEWS-SERVICE
+          predicates:
+            - Path=/api/reviews/**
+          filters:
+            - RewritePath=/api/reviews/(?<segment>.*), /api/reviews/${segment}
+
+        # ── Notifications & Reports Service ───────────────────────────
+        - id: notifications-service
+          uri: lb://NOTIFICATIONS-SERVICE
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<segment>.*), /api/notifications/${segment}
+
+# --- Service Discovery: register the gateway with Eureka ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# --- Distributed Tracing (Zipkin via Micrometer) ---
+management:
+  tracing:
+    sampling:
+      # Trace 100% of requests in development. Lower in production (e.g., 0.1).
+      probability: 1.0
+  zipkin:
+    tracing:
+      # Zipkin collector endpoint (default Zipkin Docker port)
+      endpoint: http://localhost:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true  # Enables /actuator/gateway/routes for debugging
+
+# --- Logging: include traceId and spanId in log output ---
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: INFO

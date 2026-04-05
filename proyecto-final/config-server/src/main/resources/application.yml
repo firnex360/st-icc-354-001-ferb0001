@@ -1,0 +1,51 @@
+# =============================================================================
+# CONFIGURATION SERVER (Spring Cloud Config Server) - Configuration
+# =============================================================================
+# Centralizes externalized configuration for every microservice in the hotel
+# accommodation platform. In this development phase we use the "native" profile,
+# which reads configuration files from the local file system.
+#
+# Each service's config file must be placed inside the directory specified by
+# spring.cloud.config.server.native.search-locations and named after the
+# service's spring.application.name (e.g., catalog-service.yml,
+# reservation-service.yml).
+#
+# Access config at: http://localhost:8888/{application}/{profile}
+# =============================================================================
+
+server:
+  port: 8888  # Standard port for Spring Cloud Config Server
+
+spring:
+  application:
+    name: config-server
+
+  # --- Config Server Backend ---
+  profiles:
+    active: native  # Use local file-system instead of a Git repository
+
+  cloud:
+    config:
+      server:
+        native:
+          # Directory where per-service configuration files are stored.
+          # Create .yml files here named after each microservice.
+          search-locations: file:///c:/Codes/github/st-icc-354-001-ferb0001/proyecto-final/config-server/configurations
+
+# --- Service Discovery: register this Config Server with Eureka ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# --- Actuator endpoints for monitoring ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

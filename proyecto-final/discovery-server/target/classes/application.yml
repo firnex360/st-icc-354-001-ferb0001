@@ -1,0 +1,44 @@
+# =============================================================================
+# DISCOVERY SERVER (Eureka Server) - Configuration
+# =============================================================================
+# This server acts as the service registry. All microservices in the
+# hotel accommodation platform will register here to enable service discovery.
+# Access the Eureka Dashboard at: http://localhost:8761
+# =============================================================================
+
+server:
+  port: 8761  # Standard port for Eureka Server
+
+spring:
+  application:
+    name: discovery-server  # Logical name for this service
+
+# --- Eureka Configuration ---
+eureka:
+  instance:
+    hostname: localhost
+
+  client:
+    # Do NOT register this server as a client of itself
+    register-with-eureka: false
+    # Do NOT fetch the service registry (this IS the registry)
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    # Disable self-preservation in dev mode for faster de-registration of dead services.
+    # WARNING: Enable this in production to prevent mass de-registration during network partitions.
+    enable-self-preservation: false
+    # How often (ms) the server evicts expired instances (default: 60000)
+    eviction-interval-timer-in-ms: 5000
+
+# --- Actuator endpoints for monitoring ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
