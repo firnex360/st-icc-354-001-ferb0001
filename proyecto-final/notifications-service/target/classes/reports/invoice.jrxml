@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =============================================================================
+     JASPERREPORTS INVOICE TEMPLATE
+     =============================================================================
+     Location: src/main/resources/reports/invoice.jrxml
+     
+     This template generates a professional PDF invoice for hotel bookings.
+     It is a parameter-only report (no datasource required).
+     
+     Parameters expected by InvoiceReportService:
+       - customerName   (String)  : Guest's full name
+       - propertyName   (String)  : Hotel/property name
+       - checkInDate    (String)  : Check-in date
+       - checkOutDate   (String)  : Check-out date
+       - numberOfNights (Integer) : Duration of stay
+       - pricePerNight  (Double)  : Nightly rate
+       - subtotal       (Double)  : nights × rate
+       - taxRate        (Double)  : Tax percentage (e.g., 18.0)
+       - taxAmount      (Double)  : Tax in currency
+       - total          (Double)  : Grand total
+     ============================================================================= -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="invoice"
+              pageWidth="595" pageHeight="842"
+              columnWidth="515"
+              leftMargin="40" rightMargin="40"
+              topMargin="50" bottomMargin="50">
+
+    <!-- ═══════════════════ PARAMETERS ═══════════════════ -->
+
+    <parameter name="customerName"  class="java.lang.String"/>
+    <parameter name="propertyName"  class="java.lang.String"/>
+    <parameter name="checkInDate"   class="java.lang.String"/>
+    <parameter name="checkOutDate"  class="java.lang.String"/>
+    <parameter name="numberOfNights" class="java.lang.Integer"/>
+    <parameter name="pricePerNight" class="java.lang.Double"/>
+    <parameter name="subtotal"      class="java.lang.Double"/>
+    <parameter name="taxRate"       class="java.lang.Double"/>
+    <parameter name="taxAmount"     class="java.lang.Double"/>
+    <parameter name="total"         class="java.lang.Double"/>
+
+    <!-- ═══════════════════ TITLE BAND ═══════════════════ -->
+
+    <title>
+        <band height="130">
+            <!-- Company / Platform Name -->
+            <staticText>
+                <reportElement x="0" y="0" width="515" height="40"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="22" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Hotel Accommodation Platform]]></text>
+            </staticText>
+
+            <!-- Document Title -->
+            <staticText>
+                <reportElement x="0" y="40" width="515" height="25"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="14"/>
+                </textElement>
+                <text><![CDATA[BOOKING INVOICE]]></text>
+            </staticText>
+
+            <!-- Horizontal separator line -->
+            <line>
+                <reportElement x="0" y="75" width="515" height="1"/>
+            </line>
+
+            <!-- Customer Name Label -->
+            <staticText>
+                <reportElement x="0" y="85" width="120" height="20"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Customer Name:]]></text>
+            </staticText>
+
+            <!-- Customer Name Value -->
+            <textField>
+                <reportElement x="120" y="85" width="395" height="20"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="11"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{customerName}]]></textFieldExpression>
+            </textField>
+
+            <!-- Property Name Label -->
+            <staticText>
+                <reportElement x="0" y="105" width="120" height="20"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Property:]]></text>
+            </staticText>
+
+            <!-- Property Name Value -->
+            <textField>
+                <reportElement x="120" y="105" width="395" height="20"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="11"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{propertyName}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <!-- ═══════════════ DETAIL BAND (Booking Info) ═══════════════ -->
+
+    <detail>
+        <band height="310">
+
+            <!-- ─── Dates Section ─── -->
+            <staticText>
+                <reportElement x="0" y="10" width="515" height="25"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="13" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Stay Details]]></text>
+            </staticText>
+
+            <line>
+                <reportElement x="0" y="35" width="515" height="1"/>
+            </line>
+
+            <!-- Check-in -->
+            <staticText>
+                <reportElement x="0" y="45" width="150" height="20"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Check-in Date:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="150" y="45" width="200" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{checkInDate}]]></textFieldExpression>
+            </textField>
+
+            <!-- Check-out -->
+            <staticText>
+                <reportElement x="0" y="65" width="150" height="20"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Check-out Date:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="150" y="65" width="200" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{checkOutDate}]]></textFieldExpression>
+            </textField>
+
+            <!-- Number of Nights -->
+            <staticText>
+                <reportElement x="0" y="85" width="150" height="20"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Number of Nights:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="150" y="85" width="200" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{numberOfNights}]]></textFieldExpression>
+            </textField>
+
+            <!-- ─── Cost Breakdown Section ─── -->
+            <staticText>
+                <reportElement x="0" y="120" width="515" height="25"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="13" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Cost Breakdown]]></text>
+            </staticText>
+
+            <line>
+                <reportElement x="0" y="145" width="515" height="1"/>
+            </line>
+
+            <!-- Price Per Night -->
+            <staticText>
+                <reportElement x="0" y="155" width="300" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <text><![CDATA[Price per Night:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="350" y="155" width="165" height="20"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["$" + String.format("%.2f", $P{pricePerNight})]]></textFieldExpression>
+            </textField>
+
+            <!-- Subtotal -->
+            <staticText>
+                <reportElement x="0" y="175" width="300" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <text><![CDATA[Subtotal:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="350" y="175" width="165" height="20"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["$" + String.format("%.2f", $P{subtotal})]]></textFieldExpression>
+            </textField>
+
+            <!-- Tax -->
+            <staticText>
+                <reportElement x="0" y="195" width="300" height="20"/>
+                <textElement><font size="10"/></textElement>
+                <text><![CDATA[Taxes:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="100" y="195" width="200" height="20"/>
+                <textElement><font size="10" isItalic="true"/></textElement>
+                <textFieldExpression><![CDATA["(" + String.format("%.1f", $P{taxRate}) + "%)"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="350" y="195" width="165" height="20"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["$" + String.format("%.2f", $P{taxAmount})]]></textFieldExpression>
+            </textField>
+
+            <!-- Separator before total -->
+            <line>
+                <reportElement x="300" y="225" width="215" height="1"/>
+            </line>
+
+            <!-- Grand Total -->
+            <staticText>
+                <reportElement x="0" y="235" width="300" height="25"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[TOTAL:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="350" y="235" width="165" height="25"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["$" + String.format("%.2f", $P{total})]]></textFieldExpression>
+            </textField>
+
+            <!-- ─── Footer Note ─── -->
+            <line>
+                <reportElement x="0" y="275" width="515" height="1"/>
+            </line>
+            <staticText>
+                <reportElement x="0" y="280" width="515" height="25"/>
+                <textElement textAlignment="Center">
+                    <font size="9" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[Thank you for choosing Hotel Accommodation Platform. We hope you enjoy your stay!]]></text>
+            </staticText>
+        </band>
+    </detail>
+
+</jasperReport>
