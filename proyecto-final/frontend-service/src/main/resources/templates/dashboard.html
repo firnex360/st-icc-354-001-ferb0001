@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Hotel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4 text-white">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold">Admin Dashboard</h1>
+        <div>
+            <a th:href="@{/catalog}" class="mr-4 hover:underline">Catalog</a>
+            <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto mt-8 p-4">
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Reservation Statistics</h2>
+
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Pending Stats -->
+        <div class="bg-white rounded-lg p-6 shadow-md border-t-4 border-yellow-500">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Pending Reservations</h3>
+            <div class="flex items-center">
+                <span class="text-4xl font-bold text-gray-800" th:text="${stats != null ? stats.pendingCount : '0'}">0</span>
+            </div>
+            
+            <div class="mt-4 w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 45%" th:style="'width: ' + (${stats != null ? stats.pendingPercentage : '0'}) + '%'"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><span th:text="${stats != null ? stats.pendingPercentage : '0'}">0</span>% of total reservations</p>
+        </div>
+
+        <!-- Completed Stats -->
+        <div class="bg-white rounded-lg p-6 shadow-md border-t-4 border-green-500">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Completed Reservations</h3>
+            <div class="flex items-center">
+                <span class="text-4xl font-bold text-gray-800" th:text="${stats != null ? stats.completedCount : '0'}">0</span>
+            </div>
+            
+            <div class="mt-4 w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-green-500 h-2.5 rounded-full" style="width: 70%" th:style="'width: ' + (${stats != null ? stats.completedPercentage : '0'}) + '%'"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><span th:text="${stats != null ? stats.completedPercentage : '0'}">0</span>% of total reservations</p>
+        </div>
+
+        <!-- Cancelled Stats -->
+        <div class="bg-white rounded-lg p-6 shadow-md border-t-4 border-red-500">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Cancelled Reservations</h3>
+            <div class="flex items-center">
+                <span class="text-4xl font-bold text-gray-800" th:text="${stats != null ? stats.cancelledCount : '0'}">0</span>
+            </div>
+            
+            <div class="mt-4 w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-red-500 h-2.5 rounded-full" style="width: 15%" th:style="'width: ' + (${stats != null ? stats.cancelledPercentage : '0'}) + '%'"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><span th:text="${stats != null ? stats.cancelledPercentage : '0'}">0</span>% of total reservations</p>
+        </div>
+    </div>
+    
+    <div th:if="${stats == null}" class="text-center text-gray-500 mt-8">
+        <p>No statistics available at the moment.</p>
+    </div>
+</div>
+
+</body>
+</html>

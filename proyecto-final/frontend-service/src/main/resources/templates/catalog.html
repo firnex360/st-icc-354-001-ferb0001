@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Property Catalog - Hotel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4 text-white">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold">Property Catalog</h1>
+        <div>
+            <a th:href="@{/dashboard}" class="mr-4 hover:underline">Dashboard</a>
+            <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto mt-8 p-4">
+    <h2 class="text-2xl font-semibold mb-6">Available Properties</h2>
+
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Properties Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div th:each="property : ${properties}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
+            <!-- Image Placeholder -->
+            <div class="h-48 bg-gray-300 w-full object-cover flex items-center justify-center text-gray-500">
+                <span class="text-sm">Image not available</span>
+            </div>
+            
+            <div class="p-4">
+                <h3 class="text-lg font-bold text-gray-800" th:text="${property.name}">Property Name</h3>
+                <p class="text-sm text-gray-600 mt-1" th:text="${property.location}">Location</p>
+                <div class="mt-4 flex justify-between items-center">
+                    <span class="text-blue-600 font-bold" th:text="${'$' + property.pricePerNight + ' / night'}">$150 / night</span>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                        Details
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${properties == null || properties.empty}" class="col-span-full text-center text-gray-500 mt-8">
+            <p>No properties available at the moment.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
