@@ -1,23 +1,247 @@
 version: '3.8'
 
 services:
-  api-gateway:
-    build: 
-      context: ./api-gateway
+  # ==================== DATABASES ====================
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: hotel_user
+      POSTGRES_PASSWORD: hotel_password
+      POSTGRES_DB: hotel_db
     ports:
-      - "8080:8080"
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel_user -d hotel_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - hospedaje-network
 
-  frontend:
-    build:
-      context: ./frontend
+  mongo-db:
+    image: mongo:7-alpine
+    container_name: mongo-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo_user
+      MONGO_INITDB_ROOT_PASSWORD: mongo_password
     ports:
-      - "3000:80"
-    depends_on:
-      - api-gateway
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - hospedaje-network
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9411/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hospedaje-network
+
+  # ==================== INFRASTRUCTURE ====================
+  eureka-server:
+    build:
+      context: ./discovery-server
+      dockerfile: ../Dockerfile.template
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+      EUREKA_INSTANCE_HOSTNAME: eureka-server
+      EUREKA_CLIENT_REGISTERWITEUREKA: "false"
+      EUREKA_CLIENT_FETCHREGISTRY: "false"
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hospedaje-network
+    depends_on:
+      - zipkin
+
+  config-server:
+    build:
+      context: ./config-server
+      dockerfile: ../Dockerfile.template
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SERVER_PORT: 8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: config-server
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: ../Dockerfile.template
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  # ==================== BUSINESS SERVICES ====================
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: ../Dockerfile.template
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: auth-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotel_db
+      SPRING_DATASOURCE_USERNAME: hotel_user
+      SPRING_DATASOURCE_PASSWORD: hotel_password
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+      dockerfile: ../Dockerfile.template
+    container_name: catalog-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: catalog-service
+      SPRING_DATA_MONGODB_URI: mongodb://mongo_user:mongo_password@mongo-db:27017/hotel_catalog?authSource=admin
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      mongo-db:
+        condition: service_healthy
+
+  reservation-service:
+    build:
+      context: ./reservation-service
+      dockerfile: ../Dockerfile.template
+    container_name: reservation-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: reservation-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotel_db
+      SPRING_DATASOURCE_USERNAME: hotel_user
+      SPRING_DATASOURCE_PASSWORD: hotel_password
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+
+  reviews-service:
+    build:
+      context: ./reviews-service
+      dockerfile: ../Dockerfile.template
+    container_name: reviews-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: reviews-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotel_db
+      SPRING_DATASOURCE_USERNAME: hotel_user
+      SPRING_DATASOURCE_PASSWORD: hotel_password
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+
+  notifications-service:
+    build:
+      context: ./notifications-service
+      dockerfile: ../Dockerfile.template
+    container_name: notifications-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: notifications-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotel_db
+      SPRING_DATASOURCE_USERNAME: hotel_user
+      SPRING_DATASOURCE_PASSWORD: hotel_password
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+
+  # ==================== FRONTEND SERVICE ====================
+  frontend-service:
+    build:
+      context: ./frontend-service
+      dockerfile: ../Dockerfile.template
+    container_name: frontend-service
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: frontend-service
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - hospedaje-network
+    depends_on:
+      eureka-server:
+        condition: service_started
+      api-gateway:
+        condition: service_started
 
 networks:
   hospedaje-network:

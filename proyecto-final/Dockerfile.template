@@ -1,0 +1,32 @@
+# ============================================================================
+# Dockerfile.template - Standard multi-stage builder for Spring Boot Services
+# ============================================================================
+# Usage: This file can be used as a central Dockerfile.
+# You can reference it in docker-compose.yml as `dockerfile: ../Dockerfile.template`
+# using the service directory as the `context`.
+
+# Stage 1: Build Environment
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
+
+WORKDIR /app
+
+# Copy Maven POM and download dependencies for caching
+COPY pom.xml .
+RUN mvn dependency:go-offline -B || true
+
+# Copy the actual source code
+COPY src/ src/
+
+# Create the executable JAR
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime Environment
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+# Copy the compiled JAR into the runtime stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Run the jar file
+ENTRYPOINT ["java", "-jar", "app.jar"]
