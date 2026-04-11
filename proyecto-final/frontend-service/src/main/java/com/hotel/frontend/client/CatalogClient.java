@@ -9,6 +9,6 @@ import java.util.Map;
 @FeignClient(name = "catalog-service")
 public interface CatalogClient {
 
-    @GetMapping("/api/catalog/properties")
+    @GetMapping("/api/properties")
     List<Map<String, Object>> getProperties();
 }

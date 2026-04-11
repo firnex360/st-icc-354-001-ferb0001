@@ -9,6 +9,6 @@ import java.util.Map;
 @FeignClient(name = "auth-service")
 public interface AuthClient {
 
-    @PostMapping("/api/auth/login")
+    @PostMapping("/auth/login")
     Map<String, Object> login(@RequestBody Map<String, String> credentials);
 }
