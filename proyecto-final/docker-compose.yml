@@ -20,7 +20,7 @@ services:
       - hospedaje-network
 
   mongo-db:
-    image: mongo:7-alpine
+    image: mongo:7.0
     container_name: mongo-db
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo_user
@@ -28,10 +28,10 @@ services:
     ports:
       - "27017:27017"
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 6
     networks:
       - hospedaje-network
 

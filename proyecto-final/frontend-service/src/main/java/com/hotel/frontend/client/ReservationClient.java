@@ -1,4 +1,4 @@
-package main.java.com.hotel.frontend.client;
+package com.hotel.frontend.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

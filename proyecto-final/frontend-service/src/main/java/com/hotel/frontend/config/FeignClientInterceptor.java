@@ -1,4 +1,4 @@
-package main.java.com.hotel.frontend.config;
+package com.hotel.frontend.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

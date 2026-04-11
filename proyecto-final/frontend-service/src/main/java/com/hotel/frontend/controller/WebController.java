@@ -1,4 +1,4 @@
-package main.java.com.hotel.frontend.controller;
+package com.hotel.frontend.controller;
 
 import com.hotel.frontend.client.AuthClient;
 import com.hotel.frontend.client.CatalogClient;
@@ -32,7 +32,7 @@ public class WebController {
     public String doLogin(@RequestParam String username, @RequestParam String password, HttpServletResponse response, Model model) {
         try {
             Map<String, String> credentials = new HashMap<>();
-            credentials.put("username", username);
+            credentials.put("email", username);
             credentials.put("password", password);
             
             Map<String, Object> authResponse = authClient.login(credentials);
