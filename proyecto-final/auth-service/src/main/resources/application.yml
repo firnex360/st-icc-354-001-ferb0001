@@ -46,8 +46,8 @@ jwt:
 # =============================================================================
 app:
   admin:
-    email: admin@hospedaje.com
-    password: Admin123!
+    email: admin@gmail.com
+    password: admin
 
 # --- Service Discovery: register with Eureka ---
 eureka:
