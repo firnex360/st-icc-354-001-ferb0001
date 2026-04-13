@@ -26,6 +26,55 @@
         <span th:text="${error}"></span>
     </div>
 
+    <!-- Search / Filter Panel -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <form th:action="@{/catalog}" method="get" class="flex flex-col md:flex-row md:items-end gap-4">
+            
+            <div class="flex-1">
+                <label for="place" class="block text-sm font-medium text-gray-700 mb-1">Place / City</label>
+                <input type="text" id="place" name="place" th:value="${place}" placeholder="E.g., New York" 
+                       class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div class="w-full md:w-32">
+                <label for="minPrice" class="block text-sm font-medium text-gray-700 mb-1">Min Price $</label>
+                <input type="number" id="minPrice" name="minPrice" th:value="${minPrice}" min="0" placeholder="0" 
+                       class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div class="w-full md:w-32">
+                <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">Max Price $</label>
+                <input type="number" id="maxPrice" name="maxPrice" th:value="${maxPrice}" min="0" placeholder="9999" 
+                       class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div class="w-full md:w-40">
+                <label for="minRating" class="block text-sm font-medium text-gray-700 mb-1">Minimum Rating</label>
+                <select id="minRating" name="minRating" class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white">
+                    <option value="" th:selected="${minRating == null}">Any Rating</option>
+                    <option value="3" th:selected="${minRating == 3}">3+ Stars</option>
+                    <option value="4" th:selected="${minRating == 4}">4+ Stars</option>
+                    <option value="5" th:selected="${minRating == 5}">5 Stars</option>
+                </select>
+            </div>
+
+            <div class="w-full md:w-48">
+                <label for="checkInDate" class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+                <input type="date" id="checkInDate" name="checkInDate" th:value="${checkInDate}" 
+                       class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+
+            <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
+                <button type="submit" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                    Search
+                </button>
+                <a th:href="@{/catalog}" class="flex-1 md:flex-none bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 text-center rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
     <!-- Properties Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div th:each="property : ${properties}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">

@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -63,9 +65,50 @@ public class WebController {
     }
 
     @GetMapping("/catalog")
-    public String getCatalog(Model model) {
+    public String getCatalog(
+            @RequestParam(required = false) String place,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Integer minRating,
+            @RequestParam(required = false) String checkInDate,
+            Model model) {
         try {
-            model.addAttribute("properties", catalogClient.getProperties());
+            List<Map<String, Object>> properties = catalogClient.getProperties();
+
+            if (properties != null) {
+                if (place != null && !place.trim().isEmpty()) {
+                    String p = place.toLowerCase();
+                    properties = properties.stream()
+                        .filter(prop -> {
+                            String name = prop.get("name") != null ? String.valueOf(prop.get("name")).toLowerCase() : "";
+                            String loc = prop.get("location") != null ? String.valueOf(prop.get("location")).toLowerCase() : "";
+                            return name.contains(p) || loc.contains(p);
+                        })
+                        .collect(Collectors.toList());
+                }
+                if (minPrice != null) {
+                    properties = properties.stream()
+                        .filter(prop -> prop.get("pricePerNight") != null && Double.parseDouble(String.valueOf(prop.get("pricePerNight"))) >= minPrice)
+                        .collect(Collectors.toList());
+                }
+                if (maxPrice != null) {
+                    properties = properties.stream()
+                        .filter(prop -> prop.get("pricePerNight") != null && Double.parseDouble(String.valueOf(prop.get("pricePerNight"))) <= maxPrice)
+                        .collect(Collectors.toList());
+                }
+                if (minRating != null && minRating > 0) {
+                    properties = properties.stream()
+                        .filter(prop -> prop.get("rating") == null || Double.parseDouble(String.valueOf(prop.get("rating"))) >= minRating)
+                        .collect(Collectors.toList());
+                }
+            }
+
+            model.addAttribute("properties", properties);
+            model.addAttribute("place", place);
+            model.addAttribute("minPrice", minPrice);
+            model.addAttribute("maxPrice", maxPrice);
+            model.addAttribute("minRating", minRating);
+            model.addAttribute("checkInDate", checkInDate);
         } catch (Exception e) {
             model.addAttribute("error", "Failed to load properties: " + e.getMessage());
         }
