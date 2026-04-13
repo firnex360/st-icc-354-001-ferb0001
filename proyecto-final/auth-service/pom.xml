@@ -65,6 +65,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- ===== OpenFeign: declarative REST client for service-to-service calls ===== -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
         <!-- ===== JWT (JJWT library) ===== -->
         <!-- API — compile-time dependency -->
         <dependency>

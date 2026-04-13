@@ -12,8 +12,9 @@
 <nav class="bg-blue-600 p-4 text-white">
     <div class="container mx-auto flex justify-between items-center">
         <h1 class="text-xl font-bold">Admin Dashboard</h1>
-        <div>
-            <a th:href="@{/catalog}" class="mr-4 hover:underline">Catalog</a>
+        <div class="flex items-center gap-4">
+            <a th:href="@{/catalog}" class="hover:underline">Catalog</a>
+            <span class="text-blue-200 text-sm font-medium" th:text="${username}"></span>
             <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
         </div>
     </div>
