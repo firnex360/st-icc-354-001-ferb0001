@@ -3,11 +3,13 @@ package com.hotel.frontend.controller;
 import com.hotel.frontend.client.AuthClient;
 import com.hotel.frontend.client.CatalogClient;
 import com.hotel.frontend.client.ReservationClient;
+import com.hotel.frontend.util.JwtParser;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,6 +57,36 @@ public class WebController {
         }
     }
 
+    @GetMapping("/register")
+    public String registerPage() {
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String doRegister(@RequestParam String email, @RequestParam String password, HttpServletResponse response, Model model) {
+        try {
+            Map<String, String> credentials = new HashMap<>();
+            credentials.put("email", email);
+            credentials.put("password", password);
+
+            Map<String, Object> authResponse = authClient.register(credentials);
+            if (authResponse != null && authResponse.containsKey("token")) {
+                String token = (String) authResponse.get("token");
+                Cookie cookie = new Cookie("jwt_token", token);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                return "redirect:/catalog";
+            } else {
+                model.addAttribute("error", "Registration failed");
+                return "register";
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Registration failed: " + e.getMessage());
+            return "register";
+        }
+    }
+
     @GetMapping("/logout")
     public String logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("jwt_token", null);
@@ -65,13 +97,11 @@ public class WebController {
     }
 
     @GetMapping("/catalog")
-    public String getCatalog(
-            @RequestParam(required = false) String place,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Integer minRating,
-            @RequestParam(required = false) String checkInDate,
-            Model model) {
+    public String getCatalog(@CookieValue(name = "jwt_token", required = false) String token, Model model) {
+        String email = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
         try {
             List<Map<String, Object>> properties = catalogClient.getProperties();
 
@@ -116,7 +146,15 @@ public class WebController {
     }
 
     @GetMapping("/dashboard")
-    public String getDashboard(Model model) {
+    public String getDashboard(@CookieValue(name = "jwt_token", required = false) String token, Model model) {
+        String role = JwtParser.getRole(token);
+        if ("ROLE_CLIENT".equals(role)) {
+            return "redirect:/catalog";
+        }
+        String email = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", role);
         try {
             model.addAttribute("stats", reservationClient.getDashboardStats());
         } catch (Exception e) {

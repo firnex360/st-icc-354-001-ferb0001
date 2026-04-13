@@ -2,6 +2,7 @@ package com.hospedaje.auth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Authentication & Security Microservice.
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Runs on port 8081 and registers as {@code AUTH-SERVICE} in Eureka.
  */
 @SpringBootApplication
+@EnableFeignClients
 public class AuthServiceApplication {
 
     public static void main(String[] args) {

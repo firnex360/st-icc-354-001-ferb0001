@@ -1,5 +1,6 @@
 package com.hospedaje.auth.service;
 
+import com.hospedaje.auth.client.NotificationClient;
 import com.hospedaje.auth.dto.AuthResponse;
 import com.hospedaje.auth.dto.LoginRequest;
 import com.hospedaje.auth.dto.RegisterRequest;
@@ -15,6 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 /**
  * Business logic for user registration and authentication.
  */
@@ -28,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final NotificationClient notificationClient;
 
     // ─── Registration ────────────────────────────────────────────────
 
@@ -43,9 +47,14 @@ public class AuthService {
         }
 
         // Build and persist the new user
+        String firstName = (request.getFirstName() != null && !request.getFirstName().isBlank())
+                ? request.getFirstName() : "User";
+        String lastName  = (request.getLastName()  != null && !request.getLastName().isBlank())
+                ? request.getLastName()  : "";
+
         User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
+                .firstName(firstName)
+                .lastName(lastName)
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.CLIENT)   // New registrations are always CLIENT
@@ -53,6 +62,22 @@ public class AuthService {
 
         userRepository.save(user);
         log.info("New user registered: {} ({})", user.getEmail(), user.getRole());
+
+        // Send welcome email — failure is non-fatal so registration still succeeds
+        try {
+            notificationClient.sendEmail(Map.of(
+                    "to",      user.getEmail(),
+                    "subject", "Welcome to Hotel Platform",
+                    "body",    "Hi " + firstName + ",\n\n" +
+                               "Your account has been created successfully.\n" +
+                               "You can now log in with: " + user.getEmail() + "\n\n" +
+                               "Welcome aboard!\n" +
+                               "— Hotel Platform Team"
+            ));
+            log.info("Welcome email sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.warn("Could not send welcome email to {}: {}", user.getEmail(), e.getMessage());
+        }
 
         // Generate JWT for immediate login
         String token = jwtService.generateToken(user);
