@@ -4,6 +4,7 @@ import com.hospedaje.auth.client.NotificationClient;
 import com.hospedaje.auth.dto.AuthResponse;
 import com.hospedaje.auth.dto.LoginRequest;
 import com.hospedaje.auth.dto.RegisterRequest;
+import com.hospedaje.auth.dto.UserDto;
 import com.hospedaje.auth.model.Role;
 import com.hospedaje.auth.model.User;
 import com.hospedaje.auth.repository.UserRepository;
@@ -16,7 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Business logic for user registration and authentication.
@@ -87,6 +90,30 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .message("User registered successfully")
+                .build();
+    }
+
+    // ─── User Queries ────────────────────────────────────────────────
+
+    /** Return every registered user as a safe DTO (no password). */
+    public List<UserDto> findAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    /** Find a single user by email and return a safe DTO. */
+    public Optional<UserDto> findByEmail(String email) {
+        return userRepository.findByEmail(email).map(this::toDto);
+    }
+
+    private UserDto toDto(User user) {
+        return UserDto.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole())
                 .build();
     }
 

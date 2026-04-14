@@ -473,6 +473,45 @@ public class WebController {
         return "my-reservations";
     }
 
+    // ─── Admin: User List ─────────────────────────────────────────────
+
+    @GetMapping("/admin/users")
+    public String adminUsers(@CookieValue(name = "jwt_token", required = false) String token,
+                             Model model) {
+        // Guard: only admins may access this page
+        String role = JwtParser.getRole(token);
+        if (!"ROLE_ADMIN".equals(role)) {
+            return "redirect:/catalog";
+        }
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", role);
+        try {
+            model.addAttribute("users", authClient.getAllUsers());
+        } catch (Exception e) {
+            model.addAttribute("error", "Could not load users: " + e.getMessage());
+        }
+        return "admin-users";
+    }
+
+    // ─── User Profile ─────────────────────────────────────────────────
+
+    @GetMapping("/profile")
+    public String profile(@CookieValue(name = "jwt_token", required = false) String token,
+                          Model model) {
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+        try {
+            model.addAttribute("user", authClient.getUserByEmail(email));
+        } catch (Exception e) {
+            model.addAttribute("error", "Could not load profile: " + e.getMessage());
+        }
+        return "profile";
+    }
+
     @PostMapping("/my-reservations/review")
     public String submitMyReservationsReview(@RequestParam String propertyId,
                                              @RequestParam int rating,

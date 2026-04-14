@@ -14,8 +14,10 @@
         <h1 class="text-xl font-bold">Hotel Platform</h1>
         <div class="flex items-center gap-4">
             <a th:href="@{/catalog}" class="hover:underline">Catalog</a>
-            <a th:if="${role == 'ROLE_ADMIN'}" th:href="@{/dashboard}" class="hover:underline">Dashboard</a>
+            <a th:if="${role == 'ROLE_ADMIN'}" th:href="@{/dashboard}"   class="hover:underline">Dashboard</a>
+            <a th:if="${role == 'ROLE_ADMIN'}" th:href="@{/admin/users}" class="hover:underline">Users</a>
             <a th:if="${role != 'ROLE_ADMIN'}" th:href="@{/my-reservations}" class="hover:underline">My Reservations</a>
+            <a th:href="@{/profile}" class="hover:underline">My Profile</a>
             <span class="text-blue-200 text-sm font-medium" th:text="${username}"></span>
             <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
         </div>

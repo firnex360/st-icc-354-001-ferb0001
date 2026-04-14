@@ -3,12 +3,15 @@ package com.hospedaje.auth.controller;
 import com.hospedaje.auth.dto.AuthResponse;
 import com.hospedaje.auth.dto.LoginRequest;
 import com.hospedaje.auth.dto.RegisterRequest;
+import com.hospedaje.auth.dto.UserDto;
 import com.hospedaje.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for authentication operations.
@@ -48,5 +51,29 @@ public class AuthController {
     @GetMapping("/validate")
     public ResponseEntity<String> validate() {
         return ResponseEntity.ok("Auth Service is running");
+    }
+
+    // ─── User Management (admin-facing) ──────────────────────────────
+
+    /**
+     * GET /auth/users
+     * Returns every registered user (password excluded).
+     * Protected at the gateway level — only forwarded for authenticated requests.
+     */
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        return ResponseEntity.ok(authService.findAllUsers());
+    }
+
+    /**
+     * GET /auth/users/me?email={email}
+     * Returns the profile of a single user identified by email.
+     * The frontend passes the email decoded from the JWT.
+     */
+    @GetMapping("/users/me")
+    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
+        return authService.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

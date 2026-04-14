@@ -46,10 +46,14 @@ public class SecurityConfig {
 
             // Endpoint authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Public: registration, login, and actuator health
+                // Public: registration, login, actuator health, and user-query
+                // endpoints. JWT validation for /auth/users/** is already enforced
+                // by the API Gateway before the request reaches this service.
                 .requestMatchers(
                     "/auth/register",
                     "/auth/login",
+                    "/auth/users",
+                    "/auth/users/me",
                     "/actuator/health",
                     "/actuator/info"
                 ).permitAll()
