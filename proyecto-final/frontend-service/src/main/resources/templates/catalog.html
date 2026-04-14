@@ -79,8 +79,13 @@
     <!-- Properties Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div th:each="property : ${properties}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
-            <!-- Image Placeholder -->
-            <div class="h-48 bg-gray-300 w-full object-cover flex items-center justify-center text-gray-500">
+            <!-- Image gallery or placeholder -->
+            <div th:if="${property.imageUrls != null and !property.imageUrls.empty}">
+                <img th:src="${property.imageUrls[0]}" alt="Property image"
+                     class="h-48 w-full object-cover">
+            </div>
+            <div th:if="${property.imageUrls == null or property.imageUrls.empty}" 
+                 class="h-48 bg-gray-300 w-full object-cover flex items-center justify-center text-gray-500">
                 <span class="text-sm">Image not available</span>
             </div>
             
