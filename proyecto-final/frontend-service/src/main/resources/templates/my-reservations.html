@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Reservations - Hotel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4 text-white">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold">Hotel Platform</h1>
+        <div class="flex items-center gap-4">
+            <a th:href="@{/catalog}" class="hover:underline">Catalog</a>
+            <a th:href="@{/my-reservations}" class="font-semibold underline">My Reservations</a>
+            <span class="text-blue-200 text-sm font-medium" th:text="${username}"></span>
+            <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto mt-8 p-4 max-w-5xl">
+
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">My Reservations</h2>
+
+    <!-- Error banner -->
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- ── Upcoming Reservations ───────────────────────────────── -->
+    <section class="mb-10">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+            Upcoming Reservations
+        </h3>
+
+        <div th:if="${upcomingReservations != null and !upcomingReservations.empty}"
+             class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div th:each="res : ${upcomingReservations}"
+                 class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
+
+                <!-- Property image -->
+                <div th:if="${res.propertyImage != null}">
+                    <img th:src="${res.propertyImage}" alt="Property image"
+                         class="w-full h-40 object-cover">
+                </div>
+                <div th:if="${res.propertyImage == null}"
+                     class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400 text-sm">
+                    No image available
+                </div>
+
+                <div class="p-5 flex flex-col flex-1">
+
+                    <!-- Property name + status badge -->
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-base font-bold text-gray-800 leading-tight"
+                            th:text="${res.propertyName != null ? res.propertyName : res.propertyId}">
+                            Property
+                        </h4>
+                        <!-- Status badge -->
+                        <span th:switch="${res.status}">
+                            <span th:case="'PENDING'"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                                Pending
+                            </span>
+                            <span th:case="'CONFIRMED'"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                                Confirmed
+                            </span>
+                            <span th:case="'PAID'"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                Paid
+                            </span>
+                            <span th:case="*"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600"
+                                  th:text="${res.status}">
+                                Status
+                            </span>
+                        </span>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">Check-in</p>
+                            <p class="font-medium text-gray-700" th:text="${res.checkInDate}">—</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">Check-out</p>
+                            <p class="font-medium text-gray-700" th:text="${res.checkOutDate}">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Guests + price -->
+                    <div class="flex justify-between items-center text-sm mb-4">
+                        <span class="text-gray-500"
+                              th:text="${res.numberOfGuests != null ? res.numberOfGuests + ' guest(s)' : ''}">
+                        </span>
+                        <span class="font-bold text-blue-600"
+                              th:text="${res.totalPrice != null ? '$' + #numbers.formatDecimal(res.totalPrice, 1, 2) : '—'}">
+                        </span>
+                    </div>
+
+                    <!-- Reservation ID -->
+                    <p class="text-xs text-gray-400 mb-4"
+                       th:text="${'Reservation #' + res.id}">Reservation #—</p>
+
+                    <!-- View property button -->
+                    <div class="mt-auto">
+                        <a th:href="@{/property/{id}(id=${res.propertyId})}"
+                           class="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            View Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${upcomingReservations == null or upcomingReservations.empty}"
+             class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="font-medium">No upcoming reservations</p>
+            <a th:href="@{/catalog}"
+               class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition">
+                Browse Properties
+            </a>
+        </div>
+    </section>
+
+    <!-- ── Past Reservations ──────────────────────────────────── -->
+    <section>
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-gray-400"></span>
+            Past &amp; Cancelled Reservations
+        </h3>
+
+        <div th:if="${pastReservations != null and !pastReservations.empty}"
+             class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div th:each="res : ${pastReservations}"
+                 class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col opacity-80">
+
+                <!-- Property image (grayscale for past) -->
+                <div th:if="${res.propertyImage != null}">
+                    <img th:src="${res.propertyImage}" alt="Property image"
+                         class="w-full h-40 object-cover grayscale">
+                </div>
+                <div th:if="${res.propertyImage == null}"
+                     class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400 text-sm">
+                    No image available
+                </div>
+
+                <div class="p-5 flex flex-col flex-1">
+
+                    <!-- Property name + status badge -->
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-base font-bold text-gray-700 leading-tight"
+                            th:text="${res.propertyName != null ? res.propertyName : res.propertyId}">
+                            Property
+                        </h4>
+                        <span th:switch="${res.status}">
+                            <span th:case="'PAID'"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                Completed
+                            </span>
+                            <span th:case="'CANCELLED'"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-600">
+                                Cancelled
+                            </span>
+                            <span th:case="*"
+                                  class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-500"
+                                  th:text="${res.status}">
+                                Status
+                            </span>
+                        </span>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-500 mb-3">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">Check-in</p>
+                            <p class="font-medium" th:text="${res.checkInDate}">—</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">Check-out</p>
+                            <p class="font-medium" th:text="${res.checkOutDate}">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Guests + price -->
+                    <div class="flex justify-between items-center text-sm mb-4">
+                        <span class="text-gray-400"
+                              th:text="${res.numberOfGuests != null ? res.numberOfGuests + ' guest(s)' : ''}">
+                        </span>
+                        <span class="font-semibold text-gray-500"
+                              th:text="${res.totalPrice != null ? '$' + #numbers.formatDecimal(res.totalPrice, 1, 2) : '—'}">
+                        </span>
+                    </div>
+
+                    <!-- Reservation ID -->
+                    <p class="text-xs text-gray-400 mb-4"
+                       th:text="${'Reservation #' + res.id}">Reservation #—</p>
+
+                    <!-- View property button (muted style for past) -->
+                    <div class="mt-auto">
+                        <a th:href="@{/property/{id}(id=${res.propertyId})}"
+                           class="block text-center w-full border border-gray-300 hover:bg-gray-50 text-gray-600 font-semibold py-2 px-4 rounded-lg transition">
+                            View Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${pastReservations == null or pastReservations.empty}"
+             class="bg-white rounded-xl shadow-sm p-6 text-center text-gray-400 text-sm">
+            No past reservations yet.
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>

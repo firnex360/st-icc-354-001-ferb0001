@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "reservation-service")
@@ -14,6 +15,9 @@ public interface ReservationClient {
 
     @GetMapping("/api/reservations/stats")
     Map<String, Object> getDashboardStats();
+
+    @GetMapping("/api/reservations/customer/{customerId}")
+    List<Map<String, Object>> getReservationsByCustomer(@PathVariable("customerId") String customerId);
 
     @PostMapping("/api/reservations")
     Map<String, Object> createReservation(@RequestBody Map<String, Object> request);

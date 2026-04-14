@@ -19,6 +19,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -310,6 +311,65 @@ public class WebController {
             model.addAttribute("error", "Could not load reservation details.");
         }
         return "payment-success";
+    }
+
+    // ─── My Reservations ─────────────────────────────────────────────
+
+    @GetMapping("/my-reservations")
+    public String myReservations(@CookieValue(name = "jwt_token", required = false) String token, Model model) {
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+
+        try {
+            List<Map<String, Object>> reservations = reservationClient.getReservationsByCustomer(email);
+
+            List<Map<String, Object>> upcoming = new ArrayList<>();
+            List<Map<String, Object>> past     = new ArrayList<>();
+
+            LocalDate today = LocalDate.now();
+
+            if (reservations != null) {
+                for (Map<String, Object> res : reservations) {
+                    // Make a mutable copy so we can inject enriched fields
+                    Map<String, Object> enriched = new HashMap<>(res);
+
+                    // Enrich with property name and first image from catalog
+                    try {
+                        String propertyId = String.valueOf(res.get("propertyId"));
+                        Map<String, Object> property = catalogClient.getPropertyById(propertyId);
+                        if (property != null) {
+                            enriched.put("propertyName", property.get("name"));
+                            Object imageUrls = property.get("imageUrls");
+                            if (imageUrls instanceof List<?> imgs && !((List<?>) imgs).isEmpty()) {
+                                enriched.put("propertyImage", imgs.get(0));
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
+                    // Classify as upcoming or past
+                    boolean isCancelled = "CANCELLED".equals(String.valueOf(res.get("status")));
+                    LocalDate checkOut  = null;
+                    try {
+                        checkOut = LocalDate.parse(String.valueOf(res.get("checkOutDate")));
+                    } catch (Exception ignored) {}
+
+                    if (isCancelled || (checkOut != null && checkOut.isBefore(today))) {
+                        past.add(enriched);
+                    } else {
+                        upcoming.add(enriched);
+                    }
+                }
+            }
+
+            model.addAttribute("upcomingReservations", upcoming);
+            model.addAttribute("pastReservations",     past);
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to load reservations: " + e.getMessage());
+        }
+
+        return "my-reservations";
     }
 
     @GetMapping("/dashboard")
