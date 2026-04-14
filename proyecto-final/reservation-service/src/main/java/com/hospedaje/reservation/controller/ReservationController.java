@@ -38,6 +38,18 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.findAll());
     }
 
+    // ───────────────────────── DASHBOARD STATS ─────────────────────────
+
+    /**
+     * GET /api/reservations/stats
+     * Retrieve statistics for the admin dashboard.
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<java.util.Map<String, Object>> getDashboardStats() {
+        log.debug("GET /api/reservations/stats — fetching dashboard stats");
+        return ResponseEntity.ok(reservationService.getDashboardStats());
+    }
+
     // ───────────────────────── GET BY ID ────────────────────────
 
     /**
