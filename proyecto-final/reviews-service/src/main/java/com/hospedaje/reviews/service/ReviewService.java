@@ -88,6 +88,13 @@ public class ReviewService {
                     "Rating must be between 1 and 5 (inclusive). Got: " + review.getRating());
         }
 
+        // Prevent duplicate reviews from the same customer for the same property
+        if (reviewRepository.existsByCustomerIdAndPropertyId(
+                review.getCustomerId(), review.getPropertyId())) {
+            throw new IllegalArgumentException(
+                    "You have already submitted a review for this property.");
+        }
+
         review.setId(null); // Ensure JPA generates a fresh ID
         log.info("Creating review — customer={}, property={}, rating={}",
                 review.getCustomerId(), review.getPropertyId(), review.getRating());

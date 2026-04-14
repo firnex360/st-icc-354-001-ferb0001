@@ -30,4 +30,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      * @return list of reviews by the customer
      */
     List<Review> findByCustomerId(String customerId);
+
+    /**
+     * Check whether a customer has already reviewed a specific property.
+     * Used to prevent duplicate reviews.
+     */
+    boolean existsByCustomerIdAndPropertyId(String customerId, String propertyId);
 }

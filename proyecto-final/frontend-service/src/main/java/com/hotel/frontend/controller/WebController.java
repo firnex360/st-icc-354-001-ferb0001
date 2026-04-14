@@ -3,6 +3,7 @@ package com.hotel.frontend.controller;
 import com.hotel.frontend.client.AuthClient;
 import com.hotel.frontend.client.CatalogClient;
 import com.hotel.frontend.client.ReservationClient;
+import com.hotel.frontend.client.ReviewClient;
 import com.hotel.frontend.util.JwtParser;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +33,7 @@ public class WebController {
     private final AuthClient authClient;
     private final CatalogClient catalogClient;
     private final ReservationClient reservationClient;
+    private final ReviewClient reviewClient;
 
     @GetMapping({"/", "/login"})
     public String loginPage() {
@@ -117,6 +119,34 @@ public class WebController {
         try {
             List<Map<String, Object>> properties = catalogClient.getProperties();
 
+            // ── Enrich each property with its average rating from the reviews service ──
+            // One bulk call avoids N individual requests per property.
+            try {
+                List<Map<String, Object>> allReviews = reviewClient.getAllReviews();
+                if (allReviews != null && properties != null) {
+                    // Aggregate ratings per propertyId
+                    Map<String, List<Integer>> ratingsByProperty = new HashMap<>();
+                    for (Map<String, Object> rev : allReviews) {
+                        String pid = String.valueOf(rev.get("propertyId"));
+                        int    rat = ((Number) rev.get("rating")).intValue();
+                        ratingsByProperty.computeIfAbsent(pid, k -> new ArrayList<>()).add(rat);
+                    }
+                    // Inject computed averages back into each property map
+                    for (Map<String, Object> prop : properties) {
+                        String pid = String.valueOf(prop.get("id"));
+                        List<Integer> rats = ratingsByProperty.get(pid);
+                        if (rats != null && !rats.isEmpty()) {
+                            double avg = rats.stream().mapToInt(Integer::intValue).average().orElse(0);
+                            prop.put("rating",      Math.round(avg * 10.0) / 10.0);
+                            prop.put("reviewCount", rats.size());
+                        } else {
+                            prop.put("rating",      null);
+                            prop.put("reviewCount", 0);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+
             if (properties != null) {
                 if (place != null && !place.trim().isEmpty()) {
                     String p = place.toLowerCase();
@@ -140,7 +170,11 @@ public class WebController {
                 }
                 if (minRating != null && minRating > 0) {
                     properties = properties.stream()
-                        .filter(prop -> prop.get("rating") == null || Double.parseDouble(String.valueOf(prop.get("rating"))) >= minRating)
+                        .filter(prop -> {
+                            Object r = prop.get("rating");
+                            if (r == null) return false; // unrated → excluded when filter is active
+                            return Double.parseDouble(String.valueOf(r)) >= minRating;
+                        })
                         .collect(Collectors.toList());
                 }
             }
@@ -170,7 +204,53 @@ public class WebController {
         } catch (Exception e) {
             model.addAttribute("error", "Property not found: " + e.getMessage());
         }
+
+        // ── Reviews for this property ──────────────────────────────────
+        try {
+            List<Map<String, Object>> reviews = reviewClient.getReviewsByProperty(id);
+            model.addAttribute("reviews", reviews != null ? reviews : List.of());
+
+            Map<String, Object> avgData = reviewClient.getPropertyAverageRating(id);
+            model.addAttribute("averageRating", avgData.get("averageRating"));
+            model.addAttribute("totalReviews",  avgData.get("totalReviews"));
+        } catch (Exception ignored) {
+            model.addAttribute("reviews",       List.of());
+            model.addAttribute("averageRating", 0.0);
+            model.addAttribute("totalReviews",  0);
+        }
+
+        // ── Has the current user already reviewed this property? ───────
+        try {
+            List<Map<String, Object>> propReviews = reviewClient.getReviewsByProperty(id);
+            boolean alreadyReviewed = propReviews != null && propReviews.stream()
+                    .anyMatch(r -> email.equals(String.valueOf(r.get("customerId"))));
+            model.addAttribute("alreadyReviewed", alreadyReviewed);
+            if (alreadyReviewed) {
+                propReviews.stream()
+                        .filter(r -> email.equals(String.valueOf(r.get("customerId"))))
+                        .findFirst()
+                        .ifPresent(r -> model.addAttribute("myRating", r.get("rating")));
+            }
+        } catch (Exception ignored) {
+            model.addAttribute("alreadyReviewed", false);
+        }
+
         return "property-detail";
+    }
+
+    @PostMapping("/property/{id}/review")
+    public String submitPropertyReview(@PathVariable String id,
+                                       @RequestParam int rating,
+                                       @CookieValue(name = "jwt_token", required = false) String token) {
+        String email = JwtParser.getEmail(token);
+        try {
+            Map<String, Object> review = new HashMap<>();
+            review.put("propertyId", id);
+            review.put("customerId", email);
+            review.put("rating",     rating);
+            reviewClient.submitReview(review);
+        } catch (Exception ignored) {}
+        return "redirect:/property/" + id;
     }
 
     // ─── Reservation flow ────────────────────────────────────────────
@@ -363,6 +443,27 @@ public class WebController {
                 }
             }
 
+            // ── For each PAID past reservation, check if user already reviewed ──
+            for (Map<String, Object> pastRes : past) {
+                if ("PAID".equals(String.valueOf(pastRes.get("status")))) {
+                    try {
+                        String propId = String.valueOf(pastRes.get("propertyId"));
+                        List<Map<String, Object>> propReviews = reviewClient.getReviewsByProperty(propId);
+                        boolean reviewed = propReviews != null && propReviews.stream()
+                                .anyMatch(r -> email.equals(String.valueOf(r.get("customerId"))));
+                        pastRes.put("hasReviewed", reviewed);
+                        if (reviewed) {
+                            propReviews.stream()
+                                    .filter(r -> email.equals(String.valueOf(r.get("customerId"))))
+                                    .findFirst()
+                                    .ifPresent(r -> pastRes.put("myRating", r.get("rating")));
+                        }
+                    } catch (Exception ignored) {
+                        pastRes.put("hasReviewed", false);
+                    }
+                }
+            }
+
             model.addAttribute("upcomingReservations", upcoming);
             model.addAttribute("pastReservations",     past);
         } catch (Exception e) {
@@ -370,6 +471,21 @@ public class WebController {
         }
 
         return "my-reservations";
+    }
+
+    @PostMapping("/my-reservations/review")
+    public String submitMyReservationsReview(@RequestParam String propertyId,
+                                             @RequestParam int rating,
+                                             @CookieValue(name = "jwt_token", required = false) String token) {
+        String email = JwtParser.getEmail(token);
+        try {
+            Map<String, Object> review = new HashMap<>();
+            review.put("propertyId", propertyId);
+            review.put("customerId", email);
+            review.put("rating",     rating);
+            reviewClient.submitReview(review);
+        } catch (Exception ignored) {}
+        return "redirect:/my-reservations";
     }
 
     @GetMapping("/dashboard")

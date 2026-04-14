@@ -93,7 +93,21 @@
             <div class="p-4">
                 <h3 class="text-lg font-bold text-gray-800" th:text="${property.name}">Property Name</h3>
                 <p class="text-sm text-gray-600 mt-1" th:text="${property.location}">Location</p>
-                <div class="mt-4 flex justify-between items-center">
+
+                <!-- Star rating row -->
+                <div class="flex items-center gap-1 mt-2">
+                    <span th:each="i : ${#numbers.sequence(1, 5)}"
+                          th:text="'★'"
+                          th:classappend="${property.rating != null and i <= property.rating} ? ' text-yellow-400' : ' text-gray-300'"
+                          class="text-base leading-none"></span>
+                    <span th:if="${property.rating != null}"
+                          class="text-xs text-gray-500 ml-1"
+                          th:text="${#numbers.formatDecimal(property.rating, 1, 1) + ' (' + property.reviewCount + ')'}"></span>
+                    <span th:if="${property.rating == null}"
+                          class="text-xs text-gray-400 ml-1">No reviews yet</span>
+                </div>
+
+                <div class="mt-3 flex justify-between items-center">
                     <span class="text-blue-600 font-bold" th:text="${'$' + property.pricePerNight + ' / night'}">$150 / night</span>
                     <a th:href="@{/property/{id}(id=${property.id})}"
                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
