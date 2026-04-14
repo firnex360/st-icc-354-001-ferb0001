@@ -67,6 +67,36 @@ public class ReservationService {
                 .toList();
     }
 
+    /**
+     * Retrieve statistics for the admin dashboard.
+     */
+    public Map<String, Object> getDashboardStats() {
+        log.debug("Calculating dashboard stats");
+        List<Reservation> all = reservationRepository.findAll();
+        long total = all.size();
+
+        long pendingCount = all.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.PENDING)
+                .count();
+        long completedCount = all.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.PAID || r.getStatus() == ReservationStatus.CONFIRMED)
+                .count();
+        long cancelledCount = all.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.CANCELLED)
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("pendingCount", pendingCount);
+        stats.put("completedCount", completedCount);
+        stats.put("cancelledCount", cancelledCount);
+
+        stats.put("pendingPercentage", total == 0 ? 0 : Math.round((pendingCount * 100.0) / total));
+        stats.put("completedPercentage", total == 0 ? 0 : Math.round((completedCount * 100.0) / total));
+        stats.put("cancelledPercentage", total == 0 ? 0 : Math.round((cancelledCount * 100.0) / total));
+
+        return stats;
+    }
+
     // ───────────────────────── Commands ─────────────────────────
 
     /**
