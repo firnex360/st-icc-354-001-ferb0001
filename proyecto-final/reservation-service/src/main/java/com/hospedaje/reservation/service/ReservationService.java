@@ -1,6 +1,7 @@
 package com.hospedaje.reservation.service;
 
 import com.hospedaje.reservation.client.CatalogClient;
+import com.hospedaje.reservation.client.NotificationClient;
 import com.hospedaje.reservation.dto.PropertyDto;
 import com.hospedaje.reservation.dto.ReservationRequest;
 import com.hospedaje.reservation.dto.ReservationResponse;
@@ -14,7 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -31,6 +34,7 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final CatalogClient catalogClient;
+    private final NotificationClient notificationClient;
 
     // ───────────────────────── Queries ──────────────────────────
 
@@ -173,6 +177,66 @@ public class ReservationService {
                     Reservation saved = reservationRepository.save(reservation);
                     return toResponse(saved);
                 });
+    }
+
+    /**
+     * Confirm payment for a reservation.
+     * Sets status to PAID, then sends a JasperReports PDF invoice
+     * to the customer's email via the Notifications Service.
+     * The email call is non-fatal — a notification failure never rolls back the payment.
+     */
+    public Optional<ReservationResponse> pay(Long id) {
+        log.info("Confirming payment for reservation id={}", id);
+
+        return reservationRepository.findById(id).map(reservation -> {
+            if (reservation.getStatus() == ReservationStatus.PAID) {
+                throw new IllegalArgumentException("Reservation is already paid.");
+            }
+            if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+                throw new IllegalArgumentException("Cannot pay a cancelled reservation.");
+            }
+
+            reservation.setStatus(ReservationStatus.PAID);
+            Reservation saved = reservationRepository.save(reservation);
+            log.info("Reservation id={} marked as PAID", saved.getId());
+
+            // Send invoice email via Notifications Service
+            try {
+                PropertyDto property = catalogClient.getPropertyById(saved.getPropertyId());
+                long nights = ChronoUnit.DAYS.between(saved.getCheckInDate(), saved.getCheckOutDate());
+                double pricePerNight = property.getPricePerNight();
+                double subtotal  = pricePerNight * nights;
+                double taxRate   = 18.0;
+                double taxAmount = subtotal * taxRate / 100.0;
+                double total     = subtotal + taxAmount;
+
+                // customerId is stored as the customer's email
+                String customerEmail = saved.getCustomerId();
+                String customerName  = customerEmail.contains("@")
+                        ? customerEmail.substring(0, customerEmail.indexOf('@'))
+                        : customerEmail;
+
+                Map<String, Object> invoice = new HashMap<>();
+                invoice.put("customerName",    customerName);
+                invoice.put("customerEmail",   customerEmail);
+                invoice.put("propertyName",    property.getName());
+                invoice.put("checkInDate",     saved.getCheckInDate().toString());
+                invoice.put("checkOutDate",    saved.getCheckOutDate().toString());
+                invoice.put("numberOfNights",  (int) nights);
+                invoice.put("pricePerNight",   pricePerNight);
+                invoice.put("subtotal",        subtotal);
+                invoice.put("taxRate",         taxRate);
+                invoice.put("taxAmount",       taxAmount);
+                invoice.put("total",           total);
+
+                notificationClient.sendInvoice(invoice);
+                log.info("Invoice email sent to {}", customerEmail);
+            } catch (Exception e) {
+                log.warn("Could not send invoice for reservation id={}: {}", saved.getId(), e.getMessage());
+            }
+
+            return toResponse(saved);
+        });
     }
 
     /**

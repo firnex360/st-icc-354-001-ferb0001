@@ -115,6 +115,21 @@ public class ReservationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // ───────────────────────── PAY ─────────────────────────
+
+    /**
+     * PUT /api/reservations/{id}/pay
+     * Confirm payment for a reservation: sets status to PAID and
+     * triggers the invoice email via the Notifications Service.
+     */
+    @PutMapping("/{id}/pay")
+    public ResponseEntity<ReservationResponse> payReservation(@PathVariable Long id) {
+        log.debug("PUT /api/reservations/{}/pay", id);
+        return reservationService.pay(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // ───────────────────────── DELETE ──────────────────────────
 
     /**

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment - Hotel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- PayPal-style header -->
+<header class="bg-[#003087] py-4 px-6 flex items-center gap-3 shadow-md">
+    <div class="flex items-center gap-2">
+        <span class="text-white text-2xl font-extrabold tracking-tight">Pay</span>
+        <span class="text-[#009cde] text-2xl font-extrabold tracking-tight">Pal</span>
+    </div>
+    <span class="text-blue-300 text-sm ml-2">— Simulated Payment</span>
+</header>
+
+<div class="container mx-auto mt-8 p-4 max-w-xl">
+
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Order Summary Card -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-[#003087] px-6 py-4">
+            <p class="text-blue-200 text-sm">You are paying to</p>
+            <p class="text-white text-lg font-bold">Hotel Platform</p>
+        </div>
+
+        <div class="p-6">
+            <h2 class="text-gray-800 font-bold text-lg mb-4">Order Summary</h2>
+
+            <div class="space-y-3 text-sm text-gray-600">
+                <div class="flex justify-between">
+                    <span>Property</span>
+                    <span class="font-semibold text-gray-800" th:text="${propertyName}">—</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Check-in</span>
+                    <span class="font-semibold text-gray-800"
+                          th:text="${reservation != null ? reservation.checkInDate : '—'}">—</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Check-out</span>
+                    <span class="font-semibold text-gray-800"
+                          th:text="${reservation != null ? reservation.checkOutDate : '—'}">—</span>
+                </div>
+                <div class="flex justify-between">
+                    <span th:text="${nights + ' night(s)'}">— night(s)</span>
+                    <span class="font-semibold text-gray-800"
+                          th:text="${'$' + #numbers.formatDecimal(subtotal, 1, 2)}">$0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Tax (18%)</span>
+                    <span class="font-semibold text-gray-800"
+                          th:text="${'$' + #numbers.formatDecimal(tax, 1, 2)}">$0.00</span>
+                </div>
+            </div>
+
+            <div class="border-t mt-4 pt-4 flex justify-between items-center">
+                <span class="text-gray-700 font-bold text-lg">Total</span>
+                <span class="text-[#003087] font-extrabold text-2xl"
+                      th:text="${'$' + #numbers.formatDecimal(total, 1, 2)}">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulated payment button -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <p class="text-gray-500 text-xs text-center mb-4">
+            This is a simulated PayPal checkout for demonstration purposes.
+            No real payment will be processed.
+        </p>
+
+        <form th:action="@{/payment/{id}/confirm(id=${reservation.id})}" method="post">
+            <button type="submit"
+                    class="w-full bg-[#ffc439] hover:bg-[#f0b72f] text-[#003087] font-extrabold
+                           py-4 px-6 rounded-full text-lg transition shadow-md">
+                Pay with PayPal
+            </button>
+        </form>
+
+        <a th:href="@{/catalog}"
+           class="block text-center text-gray-400 hover:text-gray-600 text-sm mt-4">
+            Cancel and return to catalog
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>

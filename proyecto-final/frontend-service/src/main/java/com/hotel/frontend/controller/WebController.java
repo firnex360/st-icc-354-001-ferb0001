@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +170,146 @@ public class WebController {
             model.addAttribute("error", "Property not found: " + e.getMessage());
         }
         return "property-detail";
+    }
+
+    // ─── Reservation flow ────────────────────────────────────────────
+
+    @GetMapping("/reserve/{propertyId}")
+    public String reservePage(@PathVariable String propertyId,
+                              @CookieValue(name = "jwt_token", required = false) String token,
+                              Model model) {
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+        try {
+            model.addAttribute("property", catalogClient.getPropertyById(propertyId));
+        } catch (Exception e) {
+            model.addAttribute("error", "Property not found: " + e.getMessage());
+        }
+        return "reserve";
+    }
+
+    @PostMapping("/reserve/{propertyId}")
+    public String submitReservation(@PathVariable String propertyId,
+                                    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+                                    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+                                    @RequestParam int numberOfGuests,
+                                    @CookieValue(name = "jwt_token", required = false) String token,
+                                    Model model) {
+        String email = JwtParser.getEmail(token);
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("customerId",     email);
+            request.put("propertyId",     propertyId);
+            request.put("checkInDate",    checkInDate.toString());
+            request.put("checkOutDate",   checkOutDate.toString());
+            request.put("numberOfGuests", numberOfGuests);
+
+            Map<String, Object> reservation = reservationClient.createReservation(request);
+            Number id = (Number) reservation.get("id");
+            return "redirect:/payment/" + id.longValue();
+        } catch (Exception e) {
+            String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+            model.addAttribute("username", username);
+            model.addAttribute("role", JwtParser.getRole(token));
+            model.addAttribute("error", "Could not create reservation: " + e.getMessage());
+            try { model.addAttribute("property", catalogClient.getPropertyById(propertyId)); } catch (Exception ignored) {}
+            return "reserve";
+        }
+    }
+
+    // ─── Payment flow ─────────────────────────────────────────────────
+
+    @GetMapping("/payment/{reservationId}")
+    public String paymentPage(@PathVariable Long reservationId,
+                              @CookieValue(name = "jwt_token", required = false) String token,
+                              Model model) {
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+        try {
+            Map<String, Object> reservation = reservationClient.getReservationById(reservationId);
+            model.addAttribute("reservation", reservation);
+
+            // Compute nights for display
+            LocalDate checkIn  = LocalDate.parse(reservation.get("checkInDate").toString());
+            LocalDate checkOut = LocalDate.parse(reservation.get("checkOutDate").toString());
+            long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
+            double subtotal  = ((Number) reservation.get("totalPrice")).doubleValue();
+            double taxAmount = subtotal * 0.18;
+            double total     = subtotal + taxAmount;
+
+            model.addAttribute("nights",   nights);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("tax",      taxAmount);
+            model.addAttribute("total",    total);
+
+            // Fetch property name
+            try {
+                Map<String, Object> property = catalogClient.getPropertyById(reservation.get("propertyId").toString());
+                model.addAttribute("propertyName", property.get("name"));
+            } catch (Exception ignored) {
+                model.addAttribute("propertyName", reservation.get("propertyId"));
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Reservation not found: " + e.getMessage());
+        }
+        return "payment";
+    }
+
+    @PostMapping("/payment/{reservationId}/confirm")
+    public String confirmPayment(@PathVariable Long reservationId,
+                                 @CookieValue(name = "jwt_token", required = false) String token,
+                                 Model model) {
+        try {
+            reservationClient.confirmPayment(reservationId);
+            return "redirect:/payment/" + reservationId + "/success";
+        } catch (Exception e) {
+            String email    = JwtParser.getEmail(token);
+            String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+            model.addAttribute("username", username);
+            model.addAttribute("role", JwtParser.getRole(token));
+            model.addAttribute("error", "Payment failed: " + e.getMessage());
+            return "payment";
+        }
+    }
+
+    @GetMapping("/payment/{reservationId}/success")
+    public String paymentSuccess(@PathVariable Long reservationId,
+                                 @CookieValue(name = "jwt_token", required = false) String token,
+                                 Model model) {
+        String email    = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+        try {
+            Map<String, Object> reservation = reservationClient.getReservationById(reservationId);
+            model.addAttribute("reservation", reservation);
+
+            LocalDate checkIn  = LocalDate.parse(reservation.get("checkInDate").toString());
+            LocalDate checkOut = LocalDate.parse(reservation.get("checkOutDate").toString());
+            long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
+            double subtotal  = ((Number) reservation.get("totalPrice")).doubleValue();
+            double taxAmount = subtotal * 0.18;
+            double total     = subtotal + taxAmount;
+
+            model.addAttribute("nights",   nights);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("tax",      taxAmount);
+            model.addAttribute("total",    total);
+
+            try {
+                Map<String, Object> property = catalogClient.getPropertyById(reservation.get("propertyId").toString());
+                model.addAttribute("propertyName", property.get("name"));
+            } catch (Exception ignored) {
+                model.addAttribute("propertyName", reservation.get("propertyId"));
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Could not load reservation details.");
+        }
+        return "payment-success";
     }
 
     @GetMapping("/dashboard")

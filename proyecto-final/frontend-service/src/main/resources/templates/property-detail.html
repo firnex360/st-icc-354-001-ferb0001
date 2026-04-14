@@ -118,10 +118,11 @@
                    class="text-center px-6 py-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold">
                     ← Back to Catalog
                 </a>
-                <button th:if="${property.active == true}"
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                <a th:if="${property.active == true}"
+                   th:href="@{/reserve/{id}(id=${property.id})}"
+                   class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
                     Reserve Now
-                </button>
+                </a>
                 <button th:if="${property.active == false}" disabled
                         class="flex-1 bg-gray-300 text-gray-500 font-bold py-3 px-6 rounded-lg cursor-not-allowed">
                     Not Available
