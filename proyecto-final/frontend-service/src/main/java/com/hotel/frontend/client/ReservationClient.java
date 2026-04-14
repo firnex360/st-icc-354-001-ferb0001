@@ -25,6 +25,9 @@ public interface ReservationClient {
     @GetMapping("/api/reservations/{id}")
     Map<String, Object> getReservationById(@PathVariable("id") Long id);
 
+    @GetMapping("/api/reservations")
+    java.util.List<Map<String, Object>> getAllReservations();
+
     @PutMapping("/api/reservations/{id}/pay")
     Map<String, Object> confirmPayment(@PathVariable("id") Long id);
 }

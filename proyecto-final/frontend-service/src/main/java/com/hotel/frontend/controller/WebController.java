@@ -384,6 +384,7 @@ public class WebController {
         model.addAttribute("role", role);
         try {
             model.addAttribute("stats", reservationClient.getDashboardStats());
+            model.addAttribute("reservations", reservationClient.getAllReservations());
         } catch (Exception e) {
             model.addAttribute("error", "Failed to load dashboard stats: " + e.getMessage());
         }
