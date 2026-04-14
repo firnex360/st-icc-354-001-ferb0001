@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -106,6 +107,22 @@ public class WebController {
             model.addAttribute("error", "Failed to load properties: " + e.getMessage());
         }
         return "catalog";
+    }
+
+    @GetMapping("/property/{id}")
+    public String getPropertyDetail(@PathVariable String id,
+                                    @CookieValue(name = "jwt_token", required = false) String token,
+                                    Model model) {
+        String email = JwtParser.getEmail(token);
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        model.addAttribute("username", username);
+        model.addAttribute("role", JwtParser.getRole(token));
+        try {
+            model.addAttribute("property", catalogClient.getPropertyById(id));
+        } catch (Exception e) {
+            model.addAttribute("error", "Property not found: " + e.getMessage());
+        }
+        return "property-detail";
     }
 
     @GetMapping("/dashboard")

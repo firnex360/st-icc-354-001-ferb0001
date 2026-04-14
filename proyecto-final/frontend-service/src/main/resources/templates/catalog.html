@@ -40,9 +40,10 @@
                 <p class="text-sm text-gray-600 mt-1" th:text="${property.location}">Location</p>
                 <div class="mt-4 flex justify-between items-center">
                     <span class="text-blue-600 font-bold" th:text="${'$' + property.pricePerNight + ' / night'}">$150 / night</span>
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                    <a th:href="@{/property/{id}(id=${property.id})}"
+                       class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
                         Details
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
