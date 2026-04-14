@@ -97,7 +97,13 @@ public class WebController {
     }
 
     @GetMapping("/catalog")
-    public String getCatalog(@CookieValue(name = "jwt_token", required = false) String token, Model model) {
+    public String getCatalog(@CookieValue(name = "jwt_token", required = false) String token, 
+            @RequestParam(required = false) String place,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String checkInDate,
+            Model model) {
         String email = JwtParser.getEmail(token);
         String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
         model.addAttribute("username", username);
